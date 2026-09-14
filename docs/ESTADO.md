@@ -13,7 +13,7 @@ Fecha de referencia: 14 de septiembre de 2026.
 - Seguimiento por GPS de conductores y dispositivos, mapa y llegada estimada.
 - Configuración independiente y personalizable de empresa, logos y colores; configuración SUNAT.
 - Implementación por fases en la HP, actualizada desde Termux.
-- Publicación mediante Cloudflare Tunnel como las otras aplicaciones; puertos solo internos. Subdominio propuesto `larams.aliproinv.com`, pendiente de configurar.
+- Publicación mediante Cloudflare Tunnel como las otras aplicaciones; puertos solo internos. Subdominio `larams.aliproinv.com` incorporado al túnel local; comprobación HTTPS pendiente.
 
 ## Implementado en esta entrega
 
@@ -32,21 +32,25 @@ Autenticación, permisos, conexión MySQL, CRUD de configuración, carga de arch
 
 ## Cierre pendiente de fase 0
 
-Validación local realizada: instalación con lockfile, lint, TypeScript, `prisma validate`, compilación de web/API y prueba HTTP del frontend standalone, estilos, navegación, 404 y API de salud. El usuario proporcionó el diagnóstico de la HP: Ubuntu 26.04 x86_64, Node 24.19.0, pnpm 11.1.1, MySQL 8.4.11, cloudflared 2026.8.2 activo, 5740 MiB de memoria disponible y 76 GiB libres. No se ha comprobado la conexión MySQL del ERP ni se ha instalado la aplicación en ese equipo. La comprobación visual en navegador queda pendiente si el entorno no dispone de Chromium; la prueba HTTP no la sustituye.
+Validación local realizada: instalación con lockfile, lint, TypeScript, `prisma validate`, compilación de web/API y prueba HTTP del frontend standalone, estilos, navegación, 404 y API de salud. El usuario proporcionó el diagnóstico de la HP: Ubuntu 26.04 x86_64, Node 24.19.0, pnpm 11.1.1, MySQL 8.4.11, cloudflared 2026.8.2 activo, 5740 MiB de memoria disponible y 76 GiB libres. El usuario instaló en la HP el commit `efb08c975805d20dac38b6a69ce5dc25e9dadfd5`: dependencias, lint, tipos, esquema, compilación y prueba HTTP aprobados; web y API arrancaron bajo PM2 y respondieron correctamente. MySQL del ERP sigue pendiente de fase 1. La comprobación visual en navegador queda pendiente si el entorno no dispone de Chromium; la prueba HTTP no la sustituye.
 
 - [x] Confirmar recursos actuales de la HP, versiones y puertos con el diagnóstico aportado por el usuario.
 - [x] Verificar disponibilidad inicial de `/home/alvaro/apps/larams-erp` y 3100/3101; nombres PM2 reservados en el instalador y sujetos a comprobación antes de usarlos.
-- [ ] Publicar y verificar `larams.aliproinv.com` en el túnel efectivo de la HP.
-- [ ] Instalar el commit validado y verificar ambas aplicaciones desde la HP.
-- [ ] Registrar instalación, prueba visual y actualización/reversión en la HP; comprobar arranque tras reinicio.
+- [x] Incorporar `larams.aliproinv.com` al túnel efectivo local y comprobar el servicio activo después del reinicio.
+- [ ] Confirmar salud pública por HTTPS y acceso en navegador.
+- [x] Instalar el commit validado y verificar ambas aplicaciones desde la HP, según salida proporcionada por el usuario.
+- [x] Registrar la instalación y su resultado.
+- [ ] Comprobar visualmente, probar actualización/reversión en la HP y arranque tras reinicio.
 
 CI incorpora pruebas de conservación del YAML, protección de procesos PM2 ajenos, recuperación tras un arranque fallido e instalación real repetida en runner Linux. Estas pruebas no utilizan Cloudflare real ni sustituyen la aceptación en la HP.
 
-La existencia del código y de CI no demuestra un despliegue en la HP. No se dispone de acceso remoto a ese equipo en esta entrega.
+La instalación en HP se acredita por el resultado compartido por el usuario. No se dispone de acceso SSH desde este entorno. El 14 de septiembre el instalador validó y aplicó la entrada Cloudflare y conservó `/etc/cloudflared/config.yml.larams-20260914T150345-2751.bak`. La consulta final de salud HTTPS no se confirmó; ese mensaje genérico no permite atribuir la causa a propagación, DNS local, Access o al túnel.
+
+Se añade `scripts/hp-verificar-red.py`, independiente y de solo lectura, para comparar servicios locales, acceso HTTPS normal y acceso con direcciones obtenidas de dos DNS públicos. Conserva la validación TLS y no modifica la release instalada. La comprobación externa desde el entorno de desarrollo no estuvo disponible; no equivale a una prueba de caída del sitio.
 
 ## Siguiente unidad de trabajo
 
-Fase 1A: migración inicial MySQL, empresa/sucursal, usuarios, sesiones y permisos denegados por defecto. Primero resolver la instalación aislada de fase 0. Fase 1B: personalización persistente y auditoría.
+Fase 1A: migración inicial MySQL, empresa/sucursal, usuarios, sesiones y permisos denegados por defecto. Primero confirmar HTTPS y cerrar la aceptación de fase 0. Fase 1B: personalización persistente y auditoría.
 
 ## Datos a concretar en su fase
 

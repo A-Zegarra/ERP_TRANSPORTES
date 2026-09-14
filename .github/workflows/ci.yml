@@ -31,11 +31,11 @@ jobs:
           bash -n scripts/hp-instalar.sh
           bash -n scripts/hp-cloudflare.sh
           shellcheck -x scripts/hp-diagnostico.sh scripts/hp-instalar.sh scripts/hp-cloudflare.sh
-      - name: Probar conservación de configuración Cloudflare
+      - name: Probar configuración Cloudflare y diagnóstico de red
         run: |
           python3 -m venv "$RUNNER_TEMP/larams-python"
           "$RUNNER_TEMP/larams-python/bin/pip" install PyYAML==6.0.2
-          "$RUNNER_TEMP/larams-python/bin/python" -m unittest discover -s tests -p 'test_cloudflare.py'
+          "$RUNNER_TEMP/larams-python/bin/python" -m unittest discover -s tests -p 'test_*.py'
       - name: Probar instalación y reversión con PM2 aislado
         run: |
           npm install --prefix "$RUNNER_TEMP/larams-pm2" pm2@6.0.8

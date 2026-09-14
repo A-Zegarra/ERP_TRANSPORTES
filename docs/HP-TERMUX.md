@@ -15,7 +15,7 @@ Equipo del usuario: `alvaro@ali-home-server`, Ubuntu 26.04 LTS x86_64; Node 24.1
 | Acceso previsto | `https://larams.aliproinv.com` mediante el túnel existente |
 | MySQL | disponible en el equipo; conexión del ERP pendiente de fase 1 |
 
-No existe acceso remoto a la HP desde este entorno de desarrollo. Un resultado satisfactorio de CI no demuestra que la HP esté instalada.
+No existe acceso remoto a la HP desde este entorno de desarrollo. El usuario confirmó la instalación local del commit `efb08c975805d20dac38b6a69ce5dc25e9dadfd5` el 14 de septiembre de 2026: web/API saludables y entrada Cloudflare aplicada. HTTPS quedó pendiente de diagnóstico.
 
 ## Instalar desde la sesión SSH habitual en Termux
 
@@ -38,6 +38,11 @@ El instalador:
 El modo `--local-only` instala y verifica la aplicación sin ejecutar el paso Cloudflare. No crea usuarios, bases, tablas, migraciones ni datos de negocio. No ejecuta el servidor heredado.
 
 ## Comprobación y reintento
+
+Si solo falla la última comprobación HTTPS, no hace falta recompilar. La entrega proporciona el script independiente `scripts/hp-verificar-red.py` para ejecutarlo con `python3`, sin sudo. Comprueba los dos servicios locales, el estado del túnel y el servicio de arranque PM2; compara HTTPS normal con consultas DNS públicas por HTTPS a Cloudflare y Google y solicitudes que conservan el hostname/TLS. No sigue redirecciones de autenticación ni imprime cookies, HTML o parámetros de sesión. No modifica resolvers, DNS, túnel, PM2 ni bases. Un DNS público inaccesible se identifica como no comprobado, no como NXDOMAIN. Solo atribuye el fallo al resolver de la HP si curl no resuelve el nombre y el mismo HTTPS responde usando una IP pública actual. En CI se prueba con un servidor HTTP local, sin consultar el subdominio real.
+
+El diagnóstico temporal puede terminar con código 2 si queda un punto pendiente; esto no revierte ni cambia la aplicación instalada.
+
 
 ```bash
 curl -fsS http://127.0.0.1:3100/api/health
@@ -66,4 +71,4 @@ Este procedimiento recupera código de fase 0. No revierte migraciones de datos;
 
 ## Validación automatizada y cierre real
 
-CI compila y prueba Next/Nest, revisa Bash con ShellCheck, prueba la inserción de Cloudflare sobre archivos temporales, comprueba la reversión con un daemon PM2 aislado y ejecuta el instalador real dos veces en un runner Linux. CI no usa el túnel ni las credenciales de la HP. Quedan para el equipo real: instalación, HTTPS, inspección visual, arranque tras reinicio y comprobación de las demás aplicaciones después de aplicar el cambio del túnel. No enviar contraseñas, certificados, tokens ni archivos de entorno por el chat.
+CI compila y prueba Next/Nest, revisa Bash con ShellCheck, prueba la inserción de Cloudflare sobre archivos temporales, comprueba la reversión con un daemon PM2 aislado y ejecuta el instalador real dos veces en un runner Linux. CI no usa el túnel ni las credenciales de la HP. La instalación local ya fue confirmada por el usuario. Quedan para el equipo real: HTTPS, inspección visual, arranque tras reinicio y comprobación de las demás aplicaciones después del cambio del túnel. No enviar contraseñas, certificados, tokens ni archivos de entorno por el chat.
