@@ -1,0 +1,19 @@
+{
+  "name": "larams-erp",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "dev:web": "pnpm --filter @larams/web dev",
+    "dev:api": "pnpm --filter @larams/api dev",
+    "build": "pnpm --filter @larams/api build && pnpm --filter @larams/web build",
+    "lint": "pnpm --filter @larams/web lint",
+    "typecheck": "pnpm -r typecheck",
+    "db:validate": "prisma validate",
+    "test:smoke": "node --test tests/runtime.test.mjs",
+    "check": "pnpm lint && pnpm typecheck && pnpm db:validate",
+    "hp:diagnostico": "bash scripts/hp-diagnostico.sh"
+  },
+  "devDependencies": { "prisma": "7.10.0", "dotenv": "^17.2.3" }
+}
