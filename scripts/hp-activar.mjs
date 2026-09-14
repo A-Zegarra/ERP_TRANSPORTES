@@ -77,14 +77,21 @@ function current(root) {
   }
 }
 
+function manifest(release) {
+  const filename = path.join(release, "larams.release.json");
+  return existsSync(filename) ? JSON.parse(readFileSync(filename, "utf8")) : { milestone: "0", requiresDatabase: false };
+}
+
 function config(root, release) {
+  const requiresDatabase = manifest(release).requiresDatabase;
   return { apps: [
     { name: names[0], cwd: path.join(release, "apps/web"),
       script: path.join(release, "apps/web/.next/standalone/start.cjs"),
       env: { NODE_ENV: "production", PORT: "3100", HOSTNAME: "127.0.0.1", NEXT_TELEMETRY_DISABLED: "1" } },
     { name: names[1], cwd: path.join(release, "apps/api"),
       script: path.join(release, "apps/api/dist/main.js"),
-      env: { NODE_ENV: "production", API_PORT: "3101" } },
+      env: { NODE_ENV: "production", API_PORT: "3101",
+        ...(requiresDatabase ? { LARAMS_ENV_FILE: path.join(root, "shared", "api.env") } : {}) } },
   ].map((app) => ({ ...app, interpreter: process.execPath, instances: 1, exec_mode: "fork",
     autorestart: true, min_uptime: "10s", max_restarts: 5, restart_delay: 2000,
     kill_timeout: 5000, time: true,
@@ -93,13 +100,21 @@ function config(root, release) {
   })) };
 }
 
-async function health() {
-  for (let attempt = 0; attempt < 45; attempt++) {
+async function health(release) {
+  const deadline = Date.now() + 30000;
+  while (Date.now() < deadline) {
     try {
       for (const [port, route, service] of [[3100, "/api/health", "larams-web"], [3101, "/api/v1/health", "larams-api"]]) {
         const response = await fetch("http://127.0.0.1:" + port + route, { signal: AbortSignal.timeout(1500), redirect: "error" });
         const body = await response.json();
         if (!response.ok || body.status !== "ok" || body.service !== service || body.phase !== 0) throw new Error("Salud incorrecta.");
+      }
+      if (manifest(release).requiresDatabase) {
+        const response = await fetch("http://127.0.0.1:3101/api/v1/ready", { signal: AbortSignal.timeout(6500), redirect: "error" });
+        const body = await response.json();
+        if (!response.ok || body.status !== "ok" || body.database !== "ok" || body.schemaVersion !== 1) {
+          throw new Error("MySQL no está preparado.");
+        }
       }
       return;
     } catch { await delay(500); }
@@ -129,6 +144,9 @@ export async function activate(root, release) {
   for (const filename of ["apps/web/.next/standalone/start.cjs", "apps/api/dist/main.js"]) {
     if (!existsSync(path.join(release, filename))) throw new Error("Falta un compilado de la release.");
   }
+  if (manifest(release).requiresDatabase && !existsSync(path.join(root, "shared", "api.env"))) {
+    throw new Error("Falta preparar la conexión MySQL de esta instalación.");
+  }
   const old = current(root);
   const items = await preflight(root);
   if (items.length && !old) throw new Error("Hay procesos LARAMS sin una release activa reconocible.");
@@ -137,7 +155,7 @@ export async function activate(root, release) {
     await free(3100);
     await free(3101);
     start(root, release);
-    await health();
+    await health(release);
     if (old && old !== release) atomicLink(root, "previous", old);
     atomicLink(root, "current", release);
   } catch {
@@ -147,7 +165,7 @@ export async function activate(root, release) {
       removeOwn(started);
       if (old) {
         start(root, old);
-        await health();
+        await health(old);
         atomicLink(root, "current", old);
       }
     } catch {
@@ -162,7 +180,7 @@ export async function activate(root, release) {
     console.error("LARAMS está activo, pero pm2 save falló. Falta guardar su arranque.");
   }
   writeFileSync(path.join(root, "shared", "installation.json"), JSON.stringify({
-    phase: 0, release, installedAt: new Date().toISOString(), web: "127.0.0.1:3100", api: "127.0.0.1:3101",
+    phase: manifest(release).milestone, release, installedAt: new Date().toISOString(), web: "127.0.0.1:3100", api: "127.0.0.1:3101",
   }, null, 2) + "\n", { mode: 0o600 });
   console.log("LARAMS web y API: salud correcta. Release: " + path.basename(release));
 }

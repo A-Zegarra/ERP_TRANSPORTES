@@ -4,17 +4,17 @@
 
 Monorepositorio pnpm con frontend Next.js y backend NestJS en Node.js. Un único backend organizado por dominios; trabajadores y adaptadores se despliegan aparte cuando su fase lo requiere. MySQL conserva las operaciones relacionales.
 
-| Componente | Responsabilidad | Situación en fase 0 |
+| Componente | Responsabilidad | Situación en 1A.1 |
 |---|---|---|
 | `apps/web` | Pantallas Next.js/React, navegación, Tailwind | Implementado como base navegable |
-| `apps/api` | API REST, reglas de negocio, permisos, acceso a MySQL | Solo módulo de salud; negocio pendiente |
-| `prisma` | Esquema y migraciones MySQL | Esquema de diseño validable; sin migraciones |
+| `apps/api` | API REST, reglas de negocio, permisos, acceso a MySQL | Salud y conexión MySQL; negocio y login pendientes |
+| `prisma` | Esquema y migraciones MySQL | Cliente, adaptador MySQL y primera migración de 11 tablas |
 | Trabajador Node/BullMQ | Importar, exportar, emitir, reintentar | Introducir con el primer proceso duradero |
 | Redis | Cola y caché selectiva | No se instala en la fase 0 |
 | Almacenamiento de archivos | Adjuntos, evidencias, PDFs, XML/CDR | Pendiente; rutas fuera de los directorios de release |
 | Adaptador de telemetría | API de Traccar/proveedor o ingestión autorizada | Fase 9 |
 
-La base no incluye todavía un ORM cliente operativo. Prisma CLI valida un esquema inicial; el cliente y su adaptador de conexión MySQL se añadirán juntos en la fase 1 con la versión compatible del driver y pruebas reales de migración.
+Prisma CLI, cliente y adaptador MariaDB (compatible con MySQL) comparten la versión 7.10.0. Pool inicial de cinco conexiones, servicio único NestJS y configuración privada fuera de las releases. Las claves compuestas impiden asignar sucursales, roles, sesiones o actores de auditoría a una membresía de otra empresa. Esto no sustituye la autorización ni los filtros de lectura, que se implementan en 1A.2.
 
 ## Fronteras de responsabilidad
 

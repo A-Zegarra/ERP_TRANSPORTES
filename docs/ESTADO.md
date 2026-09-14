@@ -20,7 +20,8 @@ Fecha de referencia: 14 de septiembre de 2026.
 - Workspace independiente del código heredado: `apps/web` y `apps/api`.
 - Next.js, React, TypeScript y Tailwind; páginas navegables con alcances explícitos.
 - API NestJS con prefijo `/api/v1` y salud del proceso.
-- Esquema Prisma inicial para MySQL, sin migraciones.
+- Cliente Prisma y adaptador MySQL, migración inicial de 11 tablas para organización y futuro acceso.
+- Base propia, cuentas MySQL limitadas, respaldo previo/posterior y comprobación real de conexión en `/api/v1/ready` (1A.1, pendiente de aplicar en la HP).
 - Pipeline CI, prueba de humo de compilados y diagnóstico de la HP.
 - Instalador por commit, releases, procesos PM2 propios, comprobación de salud y recuperación automática de código ante un arranque fallido.
 - Publicación preparada para el túnel Cloudflare local existente, con copia previa, validación y detección de conflictos; alternativa indicada para túneles administrados desde el panel.
@@ -28,7 +29,7 @@ Fecha de referencia: 14 de septiembre de 2026.
 
 ## No implementado todavía
 
-Autenticación, permisos, conexión MySQL, CRUD de configuración, carga de archivos, datos operativos, cotizaciones, pagos, contabilidad, telemetría, integración SUNAT y migración del sistema heredado.
+Autenticación, autorización de peticiones, CRUD de configuración, carga de archivos, datos operativos, cotizaciones, pagos, contabilidad, telemetría, integración SUNAT y migración del sistema heredado.
 
 ## Fase 0: despliegue y acceso confirmados
 
@@ -68,9 +69,9 @@ El despliegue y el acceso público quedan validados. Los ensayos operativos pend
 
 ## Siguiente unidad de trabajo
 
-Fase 1: empresa y acceso, todavía planificada. El alcance detallado está en [FASE-1-EMPRESA-ACCESO.md](FASE-1-EMPRESA-ACCESO.md).
+Fase 1A.1 implementada en la rama `feat/fase-1a-mysql`. El alcance detallado está en [FASE-1-EMPRESA-ACCESO.md](FASE-1-EMPRESA-ACCESO.md); la operación y límites están en [MYSQL-1A1.md](MYSQL-1A1.md). CI incorpora MySQL 8.4 real: colisiones de nombres, actualización desde el commit instalado en la HP, reintento, conservación de datos/credenciales, permisos SQL, claves entre empresas, reconexión y restauración en una base separada. El resultado aprobado debe verificarse en el commit entregado.
 
-Fase 1A: base y usuario MySQL propios, migración inicial, empresa/sucursal, administrador inicial, sesiones y permisos denegados por defecto. Fase 1B: configuración visual persistente y consulta de auditoría. Los cambios se probarán antes de entregar un nuevo comando de despliegue. La base publicada actual se conserva como versión conocida para recuperación; antes de admitir información operativa se completarán respaldo/restauración y los ensayos pendientes en la HP.
+Siguiente paso: instalar 1A.1 y comprobar MySQL desde la HP. Después, 1A.2 incorpora administrador inicial, sesiones y autorización; 1A.3 habilita la edición de empresa/sucursales. Fase 1B: configuración visual y consulta de auditoría. La base publicada actual se conserva como versión conocida para recuperación; antes de admitir información operativa se completarán los ensayos pendientes en la HP y el respaldo fuera del equipo.
 
 ## Datos a concretar en su fase
 

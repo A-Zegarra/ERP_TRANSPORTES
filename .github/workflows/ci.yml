@@ -1,4 +1,4 @@
-name: Fase 0 - validación
+name: LARAMS - validación y MySQL
 
 on:
   push:
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
@@ -49,15 +49,16 @@ jobs:
         run: pnpm build
       - name: Comprobar navegación y límites de la API
         run: pnpm test:smoke
-      - name: Ejecutar el instalador real dos veces en el runner
+      - name: MySQL 8.4, actualización desde fase 0 y restauración
         env:
           LARAMS_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+          LARAMS_TEST_DATABASE: '1'
         run: |
           export PATH="$RUNNER_TEMP/larams-pm2/node_modules/.bin:$PATH"
           export PM2_HOME="$RUNNER_TEMP/larams-install-pm2"
-          trap 'pm2 kill >/dev/null 2>&1 || true' EXIT
-          bash scripts/hp-instalar.sh --local-only
-          bash scripts/hp-instalar.sh --local-only
+          command -v mysql
+          command -v mysqldump
+          python3 tests/ci_mysql.py
       - name: Empaquetar conservando enlaces y permisos
         run: |
           tar -czf larams-web.tgz -C apps/web/.next/standalone .

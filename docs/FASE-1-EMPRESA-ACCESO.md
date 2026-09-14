@@ -1,6 +1,6 @@
 # Fase 1 — Empresa, MySQL y acceso
 
-Estado: planificada. Este documento define la siguiente entrega; no declara funcionalidades implementadas ni modifica la HP.
+Estado: 1A.1 implementada en esta rama; instalación en la HP pendiente. 1A.2, 1A.3 y 1B siguen planificadas. La evidencia de CI corresponde al commit de cada entrega.
 
 ## Punto de partida confirmado
 
@@ -16,6 +16,8 @@ La fase 0 está instalada en `/home/alvaro/apps/larams-erp`, con web/API saludab
 | 1B — Personalización y trazabilidad | Logos, colores, preferencias y consulta de auditoría | Configuración visual persistente; historial de cambios con usuario y fecha, sin registrar contraseñas o sesiones |
 
 Cada entrega se valida por separado. Configurar SUNAT se mantiene en la fase correspondiente: guardar datos de empresa no equivale a emitir comprobantes.
+
+1A.1 incorpora el esquema de 11 tablas, cliente MySQL, cuentas de conexión propias, migración, respaldo y readiness. Las tablas de acceso preparan las siguientes entregas: no conceden permisos a personas ni habilitan sesiones todavía. Ver [operación MySQL](MYSQL-1A1.md).
 
 ## Reglas de implementación
 
