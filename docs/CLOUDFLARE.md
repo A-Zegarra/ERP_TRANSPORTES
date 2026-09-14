@@ -1,31 +1,31 @@
 # Publicación con Cloudflare Tunnel
 
-Decisión confirmada por el usuario: este ERP funcionará como sus otras aplicaciones, mediante Cloudflare Tunnel en la HP.
+Decisión confirmada: el ERP se publica mediante el túnel existente de la HP. Hostname previsto: `larams.aliproinv.com`; la publicación no está verificada hasta ejecutar la instalación y recibir su comprobación HTTPS.
 
-## Acceso
+Next.js escucha en `127.0.0.1:3100`. NestJS permanece en `127.0.0.1:3101`; no se crea otro hostname para la API ni se abren estos puertos en el router. La comunicación autenticada entre frontend y API se incorpora en fase 1. La fase 0 contiene páginas de alcance y salud, sin login ni datos operativos.
 
-- Dirección propuesta: `https://larams.aliproinv.com`. Todavía no está creada ni comprobada.
-- Cloudflare recibe HTTPS y el túnel conecta con Next.js en una dirección de loopback de la HP.
-- El puerto local candidato `3100` es un dato interno del servicio. No aparece en la dirección de acceso ni requiere abrir ese puerto en el router.
-- NestJS permanece en loopback, candidato `3101`. El navegador usará el mismo origen del ERP; su acceso autenticado a la API se implementa en la fase 1 mediante la capa de servidor de Next/proxy. No se necesita publicar un segundo subdominio de API para esta base.
+## Qué aplica el script
 
-## Incorporación al túnel existente
+`scripts/hp-cloudflare.sh` solicita sudo y ejecuta el helper `hp_cloudflare.py`. Usa `python3-yaml` del sistema para validar el documento; si falta, instala únicamente ese paquete mediante apt. No instala otro túnel.
 
-La HP utiliza un túnel existente con aplicaciones ya configuradas. Primero comprobar cómo se gestiona actualmente; si sigue usando el archivo local, el bloque de ejemplo está en `infra/cloudflare/larams.ingress.example.yml`.
+1. Lee los argumentos del proceso activo de `cloudflared` en memoria, sin imprimirlos. Detecta tokens de gestión remota. Exige que el servicio declare explícitamente su archivo local mediante `--config` y que ese archivo identifique el túnel por UUID.
+2. Interpreta el YAML, rechaza claves repetidas o formatos especiales no admitidos y prepara una copia candidata. Inserta al principio de `ingress` la regla exacta del ERP, para darle prioridad frente a comodines existentes. Conserva el texto y el significado de todas las reglas anteriores. No sobrescribe una regla existente con el mismo hostname y otro servicio o ajustes.
+3. Valida la candidata con `cloudflared tunnel --config ... ingress validate`.
+4. Busca un `cert.pem` existente en la carpeta Cloudflare del usuario, junto al archivo efectivo o en la carpeta Cloudflare de root. El certificado de cuenta permite crear DNS; el JSON de credenciales del conector no lo sustituye. No muestra su contenido.
+5. Crea/confirma el CNAME mediante `cloudflared tunnel --origincert ... route dns UUID HOSTNAME`, sin la opción de sobrescribir DNS. Si falta el certificado o existe un conflicto, la publicación queda pendiente y el archivo del túnel no cambia.
+6. Conserva una copia junto al archivo efectivo, comprueba que nadie lo haya modificado durante la preparación y sustituye la configuración de forma atómica. Reinicia el servicio `cloudflared` y comprueba que siga activo. Este reinicio puede cortar brevemente conexiones de otras aplicaciones del mismo túnel; una actualización posterior de código del ERP no necesita reiniciarlo si su regla ya coincide.
+7. Si falla la aplicación local del cambio, restaura la copia anterior siempre que ninguna otra operación haya modificado entretanto el archivo. El registro DNS del nuevo hostname puede permanecer creado; no se borran registros automáticamente. Verifica finalmente la respuesta de salud de Next por HTTPS. La propagación, Cloudflare Access o la conectividad pueden dejar esta última comprobación pendiente aunque el servicio esté activo.
 
-1. Verificar el arranque del ERP y la dirección interna disponible.
-2. Conservar una copia del archivo de configuración del túnel existente.
-3. Añadir solo la entrada del ERP dentro de `ingress`, antes del último `http_status:404`. El ejemplo es un fragmento, no un sustituto del archivo completo.
-4. Crear la ruta DNS del subdominio al mismo túnel mediante su mecanismo de gestión actual; usar su identificador real, sin inventarlo ni compartir credenciales.
-5. Validar la configuración antes de aplicar el cambio y comprobar el hostname localmente mediante las herramientas de `cloudflared`.
-6. Aplicar únicamente la configuración necesaria y comprobar HTTPS, Next.js y las aplicaciones existentes.
+## Si el túnel se administra desde el panel
 
-La fase 0 no tiene sesiones ni datos operativos. La exposición inicial se realizará con el acceso de prueba acordado; antes de admitir información real debe cerrarse la fase de autenticación y permisos.
+El script conserva la aplicación instalada y comunica que debe añadirse al túnel existente la aplicación publicada `larams.aliproinv.com` con servicio `http://127.0.0.1:3100`. No modifica un archivo local que el servicio no utilice. Configurar el hostname en el panel y comprobar su respuesta HTTPS completa este paso.
 
-El diagnóstico de puertos sigue siendo necesario para evitar que dos aplicaciones intenten escuchar en la misma dirección interna. No equivale a proponer acceso público por IP: el acceso de usuario será siempre el subdominio HTTPS.
+El diagnóstico no revela cómo se gestiona el túnel; lo comprueba el instalador en el equipo real. No se adivinan identificadores ni se solicitan tokens por el chat. Los cambios manuales se revisan sobre la configuración efectiva, conservando las demás aplicaciones.
 
-## Separación respecto de GPS
+## Acceso y GPS
 
-Este túnel resuelve la publicación web. Los dispositivos GPS pueden usar protocolos TCP/UDP propios; su ingreso requiere una solución compatible que se definirá en la fase 9. No asumir que apuntarlos al subdominio HTTPS del ERP permite recibir sus mensajes.
+Antes de admitir información real deben estar implementados autenticación, permisos y sesiones. Las políticas existentes de Cloudflare Access no se cambian con esta entrega; si protegen el hostname, una petición sin sesión puede no alcanzar el endpoint de salud.
 
-Referencia: [protocolos de aplicaciones publicadas en Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/routing-to-tunnel/protocols/).
+El túnel web no resuelve automáticamente los protocolos TCP/UDP de dispositivos GPS. Su receptor y conectividad se definen en fase 9 según los equipos reales.
+
+Referencias oficiales: [configuración y validación de ingress](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/local-management/configuration-file/) y [DNS y certificado de cuenta](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/routing-to-tunnel/dns/).

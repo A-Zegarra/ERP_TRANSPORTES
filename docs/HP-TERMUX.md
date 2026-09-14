@@ -1,53 +1,69 @@
 # Flujo de trabajo: GitHub → Termux → HP
 
-## Situación
+## Diagnóstico confirmado el 14 de septiembre de 2026
 
-La HP es un servidor del usuario con otras aplicaciones. No se tiene acceso SSH a ella desde este entorno. El usuario confirmó Cloudflare Tunnel para publicar el ERP; no hay ruta, dirección interna ni dominio de LARAM’S comprobados todavía.
+Equipo del usuario: `alvaro@ali-home-server`, Ubuntu 26.04 LTS x86_64; Node 24.19.0, pnpm 11.1.1, PM2 instalado, MySQL 8.4.11 y cloudflared 2026.8.2. Túnel activo. Memoria total 7371 MiB, disponible 5740 MiB; disco libre 76 GiB. Las direcciones 3100/3101 y la carpeta propuesta estaban disponibles al ejecutar el diagnóstico; el instalador vuelve a comprobarlas.
 
-Esta entrega prepara la fase 0 y el diagnóstico. No instala servicios en la HP ni utiliza MySQL de otros proyectos.
-
-## Propuesta de aislamiento (pendiente de diagnóstico)
-
-| Recurso | Candidato |
+| Recurso | Valor |
 |---|---|
-| Carpeta propia | `$HOME/apps/larams-erp` bajo el usuario de despliegue |
-| Releases | `$HOME/apps/larams-erp/releases/<commit>` |
-| Configuración/archivos | `$HOME/apps/larams-erp/shared` |
-| Frontend | `127.0.0.1:3100`, proceso `larams-erp-web` |
-| API | `127.0.0.1:3101`, proceso `larams-erp-api` |
-| Base MySQL futura | `larams_erp`, usuario limitado propio |
-| Dominio/túnel | Cloudflare Tunnel existente; hostname propuesto `larams.aliproinv.com` |
+| Carpeta | `/home/alvaro/apps/larams-erp` |
+| Releases | `releases/<commit>` |
+| Versión activa/anterior | enlaces `current` y `previous` |
+| Configuración y logs | `shared` |
+| Frontend | `127.0.0.1:3100`, PM2 `larams-erp-web` |
+| API | `127.0.0.1:3101`, PM2 `larams-erp-api` |
+| Acceso previsto | `https://larams.aliproinv.com` mediante el túnel existente |
+| MySQL | disponible en el equipo; conexión del ERP pendiente de fase 1 |
 
-La API no se conecta todavía con el frontend ni con MySQL: únicamente se valida el arranque independiente. La comunicación autenticada de negocio se incorpora en la fase 1.
+No existe acceso remoto a la HP desde este entorno de desarrollo. Un resultado satisfactorio de CI no demuestra que la HP esté instalada.
 
-## Primer paso: diagnóstico de solo lectura
+## Instalar desde la sesión SSH habitual en Termux
 
-Abrir la conexión SSH habitual desde Termux y ejecutar `bash scripts/hp-diagnostico.sh` si se tiene la rama descargada. También se puede descargar ese único script desde el commit exacto indicado en la entrega, validarlo con `bash -n` y ejecutarlo. No requiere sudo, no lee `.env` ni muestra credenciales.
+La entrega del chat proporciona el comando completo y un commit con CI aprobado. El script se ejecuta como `alvaro`, sin poner `sudo` delante de todo el instalador. Solo el paso Cloudflare eleva permisos para su configuración existente.
 
-Recoge arquitectura, sistema operativo, versiones disponibles, memoria, espacio, puertos y existencia de las rutas candidatas. No ejecuta `pm2 jlist` ni otros comandos que puedan imprimir variables de entorno. No inicia el daemon de PM2.
+```bash
+# Con el script descargado del mismo commit indicado en la entrega:
+LARAMS_REF=<commit-completo-de-40-caracteres> bash hp-instalar.sh --cloudflare
+```
 
-La entrega del chat proporciona un comando completo que usa un archivo temporal y una URL fijada al commit. El usuario debe ejecutarlo dentro de la sesión de la HP, no directamente en el shell local de Android.
+El instalador:
 
-## Instalación de fase 0 tras el diagnóstico
+1. Comprueba Linux x86_64, Node 24, herramientas, carpeta propia, puertos y nombres PM2. Bloquea instalaciones simultáneas mediante `flock`.
+2. Descarga el commit exacto a una carpeta temporal dentro de `releases`. Requiere al menos 3 GiB de RAM disponible y 4 GiB de disco libre para preparar una versión nueva.
+3. Usa `npm exec --package=pnpm@11.19.0` para ejecutar el pnpm del proyecto. No actualiza el pnpm global de la HP. Instala con lockfile, comprueba tipos/lint/esquema, compila secuencialmente y ejecuta la prueba HTTP.
+4. Conserva la release preparada y arranca únicamente los dos procesos LARAMS. Comprueba el contenido de las respuestas de salud de ambos. Si falla, recupera los procesos de la release anterior o retira solo los nuevos cuando es la primera instalación.
+5. Cambia el enlace `current` después de superar la salud, conserva `previous` y registra la instalación en `shared/installation.json`. Ejecuta `pm2 save` para guardar la lista actual, sin reiniciar otros procesos. Esto actualiza el inventario persistido del usuario PM2.
+6. Publica el hostname siguiendo `CLOUDFLARE.md`. Si Cloudflare no puede completarse, mantiene la aplicación local y termina con código 2 indicando lo que falta. El código 0 con mensaje `HTTPS verificado` acredita la respuesta web recibida por el script en ese momento.
 
-La instalación se concretará con los recursos confirmados:
+El modo `--local-only` instala y verifica la aplicación sin ejecutar el paso Cloudflare. No crea usuarios, bases, tablas, migraciones ni datos de negocio. No ejecuta el servidor heredado.
 
-1. Seleccionar el commit con CI aprobado y la ruta propia. Comprobar que el repositorio y las rutas pertenecen a este ERP; no reutilizar otro proyecto.
-2. Usar Node 24 para estos procesos sin reiniciar aplicaciones ajenas. El uso de nvm no cambia el intérprete de procesos PM2 ya arrancados; la configuración del nuevo proceso debe fijar su ejecutable.
-3. Verificar los puertos antes de arrancar. Si alguno está ocupado, elegir otro y registrar el cambio en la entrega.
-4. Instalar dependencias bloqueadas en una release nueva y compilar secuencialmente, solo si la memoria disponible lo permite. Alternativa: descargar el artefacto standalone de CI y verificar commit/arquitectura/sistema y su SHA-256. El archivo `larams-web.tgz` conserva enlaces y permisos; se extrae en una carpeta propia y se inicia con `PORT=<puerto> node start.cjs`. Un artefacto de frontend no incluye el backend Nest ni MySQL.
-5. Arrancar web y API bajo nombres propios en loopback. Registrar salud de ambos. Verificar el acceso mediante túnel SSH o dirección de prueba elegida.
-6. Preparar reversión de código conservando la release anterior y la configuración compartida. No prometer reversión automática de migraciones destructivas: en fase 1 se adopta expandir/migrar/contraer y respaldo previo.
-7. La exposición por subdominio HTTPS se configura mediante Cloudflare Tunnel, como las otras aplicaciones. Consultar `CLOUDFLARE.md`; los puertos son exclusivamente internos y no se abren en el router. La fase 0 no tiene autenticación ni datos de negocio; mantener el piloto restringido.
+## Comprobación y reintento
 
-## Actualizaciones siguientes
+```bash
+curl -fsS http://127.0.0.1:3100/api/health
+curl -fsS http://127.0.0.1:3101/api/v1/health
+# Reintentar únicamente la publicación después de resolver el mensaje pendiente:
+bash "$HOME/apps/larams-erp/current/scripts/hp-cloudflare.sh"
+```
 
-Se entregará un comando por actualización, identificado por commit, con estas operaciones cuando correspondan: comprobaciones → respaldo → nueva release → instalación/build o artefacto → migraciones compatibles → reinicio exclusivo del ERP → salud y verificación funcional → registro de resultado. Si una comprobación falla, detener antes de sustituir la versión activa.
+El instalador informa si encuentra habilitado `pm2-alvaro`; no crea un servicio global de arranque. Si ese servicio no existe, debe configurarse antes de cerrar la fase 0 y después comprobar un reinicio programado de la HP.
 
-El usuario aplica el comando desde Termux. El desarrollo y CI se mantienen en GitHub. No utilizar `pm2 restart all`, `pm2 delete all`, reinicios de MySQL compartido o cambios globales de Nginx/Cloudflare para actualizar este ERP.
+## Actualizar y recuperar código
 
-No introducir seeds ni `prisma db push`, `migrate reset` o importaciones del SQL heredado sobre una base existente. Toda migración del legado será una entrega propia con mapeo, prueba y reconciliación de cantidades/relaciones.
+Cada actualización se entrega por commit validado y se instala con el mismo procedimiento. Una release ya preparada no se recompila. La activación reinicia únicamente LARAMS, por lo que puede haber una breve pausa de este ERP. No se garantiza despliegue sin interrupción.
 
-## Datos que habilitan la siguiente entrega
+Para recuperar la release anterior, sin otra instalación en curso:
 
-Resultado del diagnóstico, subdominio o forma de acceso deseada y confirmación de si existe una base anterior con información que deba conservarse. No enviar contraseñas, tokens, certificados ni archivos `.env` en el chat.
+```bash
+flock -n "$HOME/apps/larams-erp/shared/install.lock" \
+  node "$HOME/apps/larams-erp/current/scripts/hp-activar.mjs" rollback \
+  "$HOME/apps/larams-erp"
+```
+
+La recuperación intercambia las referencias activa/anterior y vuelve a comprobar la salud. En la primera instalación no existe `previous`. Conservamos las releases, así que debe vigilarse el espacio libre y retirar versiones antiguas solo tras identificar cuáles siguen activas. La rotación de logs se incorpora antes de la operación con usuarios.
+
+Este procedimiento recupera código de fase 0. No revierte migraciones de datos; en fase 1 se preparan respaldos probados y migraciones compatibles. No usar `pm2 restart all`, `pm2 delete all`, reinicios de MySQL, `prisma db push`, `migrate reset` ni el SQL heredado sobre bases existentes.
+
+## Validación automatizada y cierre real
+
+CI compila y prueba Next/Nest, revisa Bash con ShellCheck, prueba la inserción de Cloudflare sobre archivos temporales, comprueba la reversión con un daemon PM2 aislado y ejecuta el instalador real dos veces en un runner Linux. CI no usa el túnel ni las credenciales de la HP. Quedan para el equipo real: instalación, HTTPS, inspección visual, arranque tras reinicio y comprobación de las demás aplicaciones después de aplicar el cambio del túnel. No enviar contraseñas, certificados, tokens ni archivos de entorno por el chat.

@@ -25,20 +25,12 @@ jobs:
         with:
           node-version: '24'
       - uses: pnpm/action-setup@v4
-      - name: Instalar versiones bloqueadas
-        run: pnpm install --frozen-lockfile
-      - name: Revisar tipos, lint y esquema
-        run: pnpm check
-      - name: Compilar frontend y backend
-        run: pnpm build
-      - name: Comprobar navegación y límites de la API
-        run: pnpm test:smoke
       - name: Validar scripts de la HP
         run: |
           bash -n scripts/hp-diagnostico.sh
           bash -n scripts/hp-instalar.sh
           bash -n scripts/hp-cloudflare.sh
-          shellcheck scripts/hp-diagnostico.sh scripts/hp-instalar.sh scripts/hp-cloudflare.sh
+          shellcheck -x scripts/hp-diagnostico.sh scripts/hp-instalar.sh scripts/hp-cloudflare.sh
       - name: Probar conservación de configuración Cloudflare
         run: |
           python3 -m venv "$RUNNER_TEMP/larams-python"
@@ -49,6 +41,14 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/larams-pm2" pm2@6.0.8
           export PATH="$RUNNER_TEMP/larams-pm2/node_modules/.bin:$PATH"
           node --test tests/deploy.test.mjs
+      - name: Instalar versiones bloqueadas
+        run: pnpm install --frozen-lockfile
+      - name: Revisar tipos, lint y esquema
+        run: pnpm check
+      - name: Compilar frontend y backend
+        run: pnpm build
+      - name: Comprobar navegación y límites de la API
+        run: pnpm test:smoke
       - name: Ejecutar el instalador real dos veces en el runner
         env:
           LARAMS_REF: ${{ github.event.pull_request.head.sha || github.sha }}

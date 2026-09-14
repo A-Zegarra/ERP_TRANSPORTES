@@ -12,6 +12,7 @@ ERP para transporte terrestre desde Tacna, Perú, con operaciones internacionale
 - `docs`: alcance, decisiones, criterios de aceptación y preparación del despliegue.
 - `.github/workflows`: validación de tipos, compilación y prueba de la aplicación compilada.
 - `scripts/hp-diagnostico.sh`: inventario de recursos y puertos, de solo lectura.
+- `scripts/hp-instalar.sh`: instalación por commit con releases y PM2 propios; paso Cloudflare con copia previa y validación del túnel efectivo. El diagnóstico de la HP ya fue recibido; la instalación real sigue pendiente.
 
 No hay login funcional, persistencia, cotizaciones, GPS ni emisión SUNAT en esta fase. Las pantallas de módulos muestran su alcance previsto, sin métricas ficticias ni botones de guardado simulados.
 
@@ -40,7 +41,7 @@ Frontend de desarrollo: `pnpm dev:web` en `http://127.0.0.1:3100`.
 
 API: `pnpm --filter @larams/api build` y después `pnpm --filter @larams/api start` en otra terminal. Salud: `http://127.0.0.1:3101/api/v1/health`. `pnpm dev:api` recompila TypeScript al guardar; reiniciar el proceso compilado cuando corresponda.
 
-Los puertos son candidatos, no una afirmación sobre los puertos libres en la HP. En producción se usará un despliegue identificado por commit y se verificará antes la disponibilidad.
+El diagnóstico aportado el 14 de septiembre de 2026 confirma que 3100/3101 estaban libres en la HP. El instalador vuelve a comprobarlo antes de activar una release identificada por commit.
 
 `pnpm db:validate` valida el esquema sin abrir conexión con MySQL. Las migraciones, usuarios de base de datos y administrador inicial se implementarán en la fase 1. No usar `db push`, `migrate reset` ni el SQL heredado sobre datos existentes.
 
