@@ -4,7 +4,7 @@ ERP para transporte terrestre desde Tacna, Perú, con operaciones internacionale
 
 ## Estado verificable
 
-**Fase 0: base técnica implementada, pendiente de cierre en la HP.**
+**Fase 0: base técnica instalada en la HP; HTTPS y aceptación final pendientes.**
 
 - `apps/web`: Next.js App Router, Tailwind y navegación adaptable. Inicio, alcance de módulos, configuración prevista, plan de fases y endpoint de salud.
 - `apps/api`: NestJS modular, conectado únicamente a un endpoint de salud del proceso; escucha en loopback.
@@ -12,7 +12,8 @@ ERP para transporte terrestre desde Tacna, Perú, con operaciones internacionale
 - `docs`: alcance, decisiones, criterios de aceptación y preparación del despliegue.
 - `.github/workflows`: validación de tipos, compilación y prueba de la aplicación compilada.
 - `scripts/hp-diagnostico.sh`: inventario de recursos y puertos, de solo lectura.
-- `scripts/hp-instalar.sh`: instalación por commit con releases y PM2 propios; paso Cloudflare con copia previa y validación del túnel efectivo. El diagnóstico de la HP ya fue recibido; la instalación real sigue pendiente.
+- `scripts/hp-instalar.sh`: instalación por commit con releases y PM2 propios; paso Cloudflare con copia previa y validación del túnel efectivo. El usuario confirmó web/API saludables en la HP y la entrada del túnel aplicada. La comprobación HTTPS sigue pendiente.
+- `scripts/hp-verificar-red.py`: diagnóstico independiente de servicios locales, HTTPS y DNS públicos; no modifica la instalación.
 
 No hay login funcional, persistencia, cotizaciones, GPS ni emisión SUNAT en esta fase. Las pantallas de módulos muestran su alcance previsto, sin métricas ficticias ni botones de guardado simulados.
 
