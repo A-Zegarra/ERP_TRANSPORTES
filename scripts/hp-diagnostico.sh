@@ -13,7 +13,7 @@ if [[ -r /etc/os-release ]]; then
   . /etc/os-release
   printf 'Sistema: %s\n' "${PRETTY_NAME:-Linux}"
 fi
-for executable in node pnpm pm2 mysql git; do
+for executable in node pnpm pm2 mysql git cloudflared; do
   if command -v "$executable" >/dev/null 2>&1; then
     # No iniciar el daemon de PM2: solo comprobar si está instalado.
     if [[ "$executable" == "pm2" ]]; then
@@ -26,6 +26,10 @@ for executable in node pnpm pm2 mysql git; do
     printf '%s: no encontrado en PATH\n' "$executable"
   fi
 done
+printf '\n%s\n' 'Servicio Cloudflare Tunnel:'
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl is-active cloudflared 2>/dev/null || true
+fi
 printf '\n%s\n' 'Memoria disponible:'
 free -m
 printf '\n%s\n' 'Espacio para aplicaciones:'
