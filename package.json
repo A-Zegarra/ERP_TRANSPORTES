@@ -3,17 +3,26 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.19.0",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "dev:web": "pnpm --filter @larams/web dev",
     "dev:api": "pnpm --filter @larams/api dev",
-    "build": "pnpm --filter @larams/api build && pnpm --filter @larams/web build",
+    "build": "pnpm db:generate && pnpm --filter @larams/api build && pnpm --filter @larams/web build",
     "lint": "pnpm --filter @larams/web lint",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "pnpm db:generate && pnpm -r typecheck",
     "db:validate": "prisma validate",
     "test:smoke": "node --test tests/runtime.test.mjs",
     "check": "pnpm lint && pnpm typecheck && pnpm db:validate",
-    "hp:diagnostico": "bash scripts/hp-diagnostico.sh"
+    "hp:diagnostico": "bash scripts/hp-diagnostico.sh",
+    "db:generate": "prisma generate",
+    "db:deploy": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
+    "test:db": "node --test tests/database.test.mjs"
   },
-  "devDependencies": { "prisma": "7.10.0", "dotenv": "^17.2.3" }
+  "devDependencies": {
+    "prisma": "7.10.0",
+    "dotenv": "^17.2.3"
+  }
 }

@@ -1,0 +1,32 @@
+name: Preparar lockfile y SQL de fase 1
+on:
+  push:
+    branches: ['feat/fase-1a-mysql']
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --lockfile-only --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:validate
+      - run: pnpm db:generate
+      - run: pnpm exec prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script --output /tmp/larams-initial.sql
+      - name: Entregar archivos generados para revisión
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+          for (const [name, file] of [["lock", "pnpm-lock.yaml"], ["sql", "/tmp/larams-initial.sql"]]) {
+            const content = readFileSync(file, "utf8");
+            for (let start = 0; start < content.length; start += 4000) {
+              console.log("LARAMS_GENERATED " + JSON.stringify({ name, start, text: content.slice(start, start + 4000) }));
+            }
+          }
+          NODE

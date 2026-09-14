@@ -1,18 +1,178 @@
-// Base de diseño: no hay migraciones aplicadas ni datos importados en la fase 0.
-// Incorporar RBAC, sucursales y reglas de aislamiento en la fase 1.
+generator client {
+  provider     = "prisma-client"
+  output       = "../apps/api/src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
 datasource db {
   provider = "mysql"
 }
 
 model Company {
-  id           String   @id @default(cuid()) @db.VarChar(30)
+  id           String   @id @default(uuid()) @db.Char(36)
   legalName    String   @db.VarChar(200)
   tradeName    String?  @db.VarChar(200)
   countryCode  String   @db.Char(2)
+  documentType String?  @db.VarChar(20)
+  taxId        String?  @db.VarChar(32)
   currencyCode String   @db.Char(3)
   timeZone     String   @db.VarChar(64)
+  active       Boolean  @default(true)
   createdAt    DateTime @default(now()) @db.DateTime(3)
   updatedAt    DateTime @updatedAt @db.DateTime(3)
+  branches     Branch[]
+  memberships  Membership[]
+  roles        Role[]
+  auditEvents  AuditEvent[]
 
+  @@unique([countryCode, documentType, taxId])
   @@map("companies")
+}
+
+model Branch {
+  id          String   @id @default(uuid()) @db.Char(36)
+  companyId   String   @db.Char(36)
+  code        String   @db.VarChar(20)
+  name        String   @db.VarChar(160)
+  countryCode String   @db.Char(2)
+  timeZone    String   @db.VarChar(64)
+  address     String?  @db.VarChar(250)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  accesses    BranchAccess[]
+
+  @@unique([companyId, id])
+  @@unique([companyId, code])
+  @@index([companyId, active, name, id])
+  @@map("branches")
+}
+
+model User {
+  id           String       @id @default(uuid()) @db.Char(36)
+  email        String       @unique @db.VarChar(254)
+  displayName  String       @db.VarChar(160)
+  passwordHash String?      @db.VarChar(255)
+  active       Boolean      @default(false)
+  createdAt    DateTime     @default(now()) @db.DateTime(3)
+  updatedAt    DateTime     @updatedAt @db.DateTime(3)
+  memberships  Membership[]
+
+  @@map("users")
+}
+
+model Membership {
+  id          String   @id @default(uuid()) @db.Char(36)
+  companyId   String   @db.Char(36)
+  userId      String   @db.Char(36)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  roles       UserRole[]
+  branches    BranchAccess[]
+  sessions    Session[]
+  auditEvents AuditEvent[]
+
+  @@unique([companyId, id])
+  @@unique([companyId, userId])
+  @@index([userId, active])
+  @@map("memberships")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Char(36)
+  companyId   String   @db.Char(36)
+  code        String   @db.VarChar(50)
+  name        String   @db.VarChar(120)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@unique([companyId, id])
+  @@unique([companyId, code])
+  @@map("roles")
+}
+
+model Permission {
+  code        String @id @db.VarChar(80)
+  description String @db.VarChar(200)
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  companyId      String @db.Char(36)
+  roleId         String @db.Char(36)
+  permissionCode String @db.VarChar(80)
+  role           Role @relation(fields: [companyId, roleId], references: [companyId, id], onDelete: Restrict, onUpdate: Restrict)
+  permission     Permission @relation(fields: [permissionCode], references: [code], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([roleId, permissionCode])
+  @@index([companyId, roleId])
+  @@index([permissionCode])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  companyId    String @db.Char(36)
+  membershipId String @db.Char(36)
+  roleId       String @db.Char(36)
+  membership   Membership @relation(fields: [companyId, membershipId], references: [companyId, id], onDelete: Restrict, onUpdate: Restrict)
+  role         Role @relation(fields: [companyId, roleId], references: [companyId, id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([membershipId, roleId])
+  @@index([companyId, membershipId])
+  @@index([companyId, roleId])
+  @@map("user_roles")
+}
+
+model BranchAccess {
+  companyId    String @db.Char(36)
+  membershipId String @db.Char(36)
+  branchId     String @db.Char(36)
+  membership   Membership @relation(fields: [companyId, membershipId], references: [companyId, id], onDelete: Restrict, onUpdate: Restrict)
+  branch       Branch @relation(fields: [companyId, branchId], references: [companyId, id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([membershipId, branchId])
+  @@index([companyId, membershipId])
+  @@index([companyId, branchId])
+  @@map("branch_access")
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Char(36)
+  companyId    String   @db.Char(36)
+  membershipId String   @db.Char(36)
+  tokenHash    String   @unique @db.Char(64)
+  expiresAt    DateTime @db.DateTime(3)
+  revokedAt    DateTime? @db.DateTime(3)
+  createdAt    DateTime @default(now()) @db.DateTime(3)
+  membership   Membership @relation(fields: [companyId, membershipId], references: [companyId, id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([companyId, membershipId, revokedAt])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model AuditEvent {
+  id                BigInt @id @default(autoincrement())
+  companyId         String @db.Char(36)
+  actorMembershipId String? @db.Char(36)
+  action            String @db.VarChar(80)
+  entityType        String @db.VarChar(64)
+  entityId          String? @db.VarChar(64)
+  requestId         String? @db.VarChar(64)
+  createdAt         DateTime @default(now()) @db.DateTime(3)
+  company           Company @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  actor             Membership? @relation(fields: [companyId, actorMembershipId], references: [companyId, id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([companyId, createdAt, id])
+  @@index([companyId, actorMembershipId])
+  @@map("audit_events")
 }
