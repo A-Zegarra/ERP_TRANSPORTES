@@ -44,9 +44,9 @@ async function start(script, args, cwd, env, url, t) {
   throw new Error(`El servidor no respondió. ${logs}`);
 }
 
-test("la fase 0 compilada permite navegar y no expone operaciones de negocio", { timeout: 60000 }, async (t) => {
+test("el compilado navega, distingue MySQL pendiente y no expone operaciones de negocio", { timeout: 60000 }, async (t) => {
   const apiPort = await freePort();
-  await start(path.join(root, "apps/api/dist/main.js"), [], root, { API_PORT: String(apiPort) }, `http://127.0.0.1:${apiPort}/api/v1/health`, t);
+  await start(path.join(root, "apps/api/dist/main.js"), [], root, { API_PORT: String(apiPort), DATABASE_URL: "", LARAMS_ENV_FILE: "" }, `http://127.0.0.1:${apiPort}/api/v1/health`, t);
   const webPort = await freePort();
   const webDir = path.join(root, "apps/web");
   await start(path.join(webDir, ".next/standalone/start.cjs"), [], webDir, { PORT: String(webPort) }, `http://127.0.0.1:${webPort}/api/health`, t);
@@ -54,6 +54,11 @@ test("la fase 0 compilada permite navegar y no expone operaciones de negocio", {
   const health = await fetch(`http://127.0.0.1:${apiPort}/api/v1/health`);
   assert.equal(health.headers.get("cache-control"), "no-store");
   assert.equal((await health.json()).status, "ok");
+  const ready = await fetch(`http://127.0.0.1:${apiPort}/api/v1/ready`);
+  assert.equal(ready.status, 503);
+  assert.equal(ready.headers.get("cache-control"), "no-store");
+  const unavailable = await ready.text();
+  assert.ok(!/mysql:\/\/|password|DATABASE_URL|stack/i.test(unavailable));
   const business = await fetch(`http://127.0.0.1:${apiPort}/api/v1/clients`, { method: "POST" });
   assert.equal(business.status, 404);
 

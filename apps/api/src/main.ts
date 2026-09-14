@@ -11,7 +11,7 @@ async function bootstrap(): Promise<void> {
   app.getHttpAdapter().getInstance().disable("x-powered-by");
   app.setGlobalPrefix("api/v1");
   app.enableShutdownHooks();
-  // Fase 0: únicamente salud del proceso. No se publica una API de negocio.
+  // 1A.1: liveness y readiness MySQL. Las rutas de negocio aún no se habilitan.
   await app.listen(port, "127.0.0.1");
 }
 

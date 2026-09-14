@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fase 0: no crea usuarios, bases de datos ni migraciones.
+# Instalación por release. El manifiesto declara si necesita MySQL propio.
 set -Eeuo pipefail
 umask 077
 
@@ -14,7 +14,7 @@ for larams_tool in node npm pm2 curl tar flock python3; do
   command -v "$larams_tool" >/dev/null || fail "Falta $larams_tool."
 done
 [[ "$(node -p 'process.versions.node.split(".")[0]')" == 24 ]] || fail "Se requiere Node 24."
-[[ -z "${DATABASE_URL:-}" ]] || fail "La fase 0 no usa DATABASE_URL; ejecútala fuera del entorno de otra aplicación."
+[[ -z "${DATABASE_URL:-}" && -z "${LARAMS_ENV_FILE:-}" ]] || fail "Ejecuta fuera del entorno de base de datos de otra aplicación."
 
 larams_root="$HOME/apps/larams-erp"
 [[ ! -L "$larams_root" ]] || fail "La carpeta de instalación no puede ser un enlace."
@@ -77,6 +77,17 @@ PY
   mv "$larams_source" "$larams_release"
 fi
 
+larams_requires_db="$(node -e 'const fs=require("node:fs");const f=process.argv[1];process.stdout.write(fs.existsSync(f)&&JSON.parse(fs.readFileSync(f)).requiresDatabase?"yes":"no")' "$larams_release/larams.release.json")"
+if [[ "$larams_requires_db" == yes ]]; then
+  for larams_tool in mysql mysqldump; do
+    command -v "$larams_tool" >/dev/null || fail "Falta $larams_tool para preparar MySQL."
+  done
+  if [[ -z "${LARAMS_MYSQL_ADMIN_FILE:-}" ]]; then
+    printf 'Se usará sudo para preparar únicamente la base y las cuentas MySQL propias de LARAMS.\n'
+    sudo -v
+  fi
+  python3 "$larams_release/scripts/hp_mysql.py" apply --root "$larams_root" --release "$larams_release"
+fi
 node "$larams_release/scripts/hp-activar.mjs" activate "$larams_root" "$larams_release"
 if [[ "$larams_mode" == --cloudflare ]]; then
   if ! bash "$larams_release/scripts/hp-cloudflare.sh"; then
@@ -84,7 +95,11 @@ if [[ "$larams_mode" == --cloudflare ]]; then
     exit 2
   fi
 fi
-printf '\nInstalación de fase 0 terminada. MySQL y los datos de otros proyectos no se modificaron.\n'
+printf '\nRelease de LARAMS instalada y comprobada.\n'
+if [[ "$larams_requires_db" == yes ]]; then
+  printf 'MySQL de LARAMS: migración y conexión verificadas. Los datos de otros proyectos se conservan.\n'
+  printf 'Estado MySQL: curl -fsS http://127.0.0.1:3101/api/v1/ready\n'
+fi
 printf 'Estado local: curl -fsS http://127.0.0.1:3100/api/health\n'
 printf 'Reversión de código (sin otra instalación en curso): node "%s/current/scripts/hp-activar.mjs" rollback "%s"\n' "$larams_root" "$larams_root"
 if command -v systemctl >/dev/null && systemctl is-enabled --quiet "pm2-$(id -un)" 2>/dev/null; then
