@@ -1,0 +1,18 @@
+// Base de diseño: no hay migraciones aplicadas ni datos importados en la fase 0.
+// Incorporar RBAC, sucursales y reglas de aislamiento en la fase 1.
+datasource db {
+  provider = "mysql"
+}
+
+model Company {
+  id           String   @id @default(cuid()) @db.VarChar(30)
+  legalName    String   @db.VarChar(200)
+  tradeName    String?  @db.VarChar(200)
+  countryCode  String   @db.Char(2)
+  currencyCode String   @db.Char(3)
+  timeZone     String   @db.VarChar(64)
+  createdAt    DateTime @default(now()) @db.DateTime(3)
+  updatedAt    DateTime @updatedAt @db.DateTime(3)
+
+  @@map("companies")
+}

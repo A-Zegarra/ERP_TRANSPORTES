@@ -1,0 +1,49 @@
+name: Fase 0 - validación
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: larams-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - name: Instalar versiones bloqueadas
+        run: pnpm install --frozen-lockfile
+      - name: Revisar tipos, lint y esquema
+        run: pnpm check
+      - name: Compilar frontend y backend
+        run: pnpm build
+      - name: Comprobar navegación y límites de la API
+        run: pnpm test:smoke
+      - name: Validar diagnóstico para la HP
+        run: bash -n scripts/hp-diagnostico.sh
+      - name: Empaquetar conservando enlaces y permisos
+        run: |
+          tar -czf larams-web.tgz -C apps/web/.next/standalone .
+          sha256sum larams-web.tgz > larams-web.tgz.sha256
+      - name: Guardar frontend compilado para evaluar despliegue en HP
+        uses: actions/upload-artifact@v4
+        with:
+          name: larams-web-${{ github.sha }}
+          path: |
+            larams-web.tgz
+            larams-web.tgz.sha256
+          retention-days: 14

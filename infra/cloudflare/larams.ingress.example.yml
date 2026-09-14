@@ -1,0 +1,5 @@
+# Fragmento para el bloque ingress del túnel existente en la HP.
+# Añadir antes de la regla final http_status:404; no reemplazar el archivo completo.
+# Dominio propuesto, todavía sin crear; verificar la dirección interna al instalar.
+- hostname: larams.aliproinv.com
+  service: http://127.0.0.1:3100
