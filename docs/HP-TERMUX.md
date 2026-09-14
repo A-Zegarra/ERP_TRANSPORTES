@@ -12,10 +12,10 @@ Equipo del usuario: `alvaro@ali-home-server`, Ubuntu 26.04 LTS x86_64; Node 24.1
 | Configuración y logs | `shared` |
 | Frontend | `127.0.0.1:3100`, PM2 `larams-erp-web` |
 | API | `127.0.0.1:3101`, PM2 `larams-erp-api` |
-| Acceso previsto | `https://larams.aliproinv.com` mediante el túnel existente |
+| Acceso confirmado | `https://larams.aliproinv.com` mediante el túnel existente |
 | MySQL | disponible en el equipo; conexión del ERP pendiente de fase 1 |
 
-No existe acceso remoto a la HP desde este entorno de desarrollo. El usuario confirmó la instalación local del commit `efb08c975805d20dac38b6a69ce5dc25e9dadfd5` el 14 de septiembre de 2026: web/API saludables y entrada Cloudflare aplicada. HTTPS quedó pendiente de diagnóstico.
+No existe acceso remoto a la HP desde este entorno de desarrollo. El usuario confirmó la instalación local del commit `efb08c975805d20dac38b6a69ce5dc25e9dadfd5` el 14 de septiembre de 2026: web/API saludables y entrada Cloudflare aplicada. El diagnóstico de las 15:17:30 UTC confirmó HTTPS, DNS públicos, túnel activo y arranque PM2 habilitado. El usuario confirmó apertura normal en navegador. La release instalada sigue siendo `efb08c975805d20dac38b6a69ce5dc25e9dadfd5`; el script posterior de diagnóstico no es una actualización del ERP.
 
 ## Instalar desde la sesión SSH habitual en Termux
 
@@ -51,7 +51,7 @@ curl -fsS http://127.0.0.1:3101/api/v1/health
 bash "$HOME/apps/larams-erp/current/scripts/hp-cloudflare.sh"
 ```
 
-El instalador informa si encuentra habilitado `pm2-alvaro`; no crea un servicio global de arranque. Si ese servicio no existe, debe configurarse antes de cerrar la fase 0 y después comprobar un reinicio programado de la HP.
+El diagnóstico posterior confirmó habilitado el servicio de arranque PM2 del usuario. El instalador no creó ni reemplazó ese servicio. Aún falta comprobar la recuperación de LARAMS después de un reinicio programado de la HP. Si ese servicio no existe, debe configurarse antes de cerrar la fase 0 y después comprobar un reinicio programado de la HP.
 
 ## Actualizar y recuperar código
 
@@ -71,4 +71,4 @@ Este procedimiento recupera código de fase 0. No revierte migraciones de datos;
 
 ## Validación automatizada y cierre real
 
-CI compila y prueba Next/Nest, revisa Bash con ShellCheck, prueba la inserción de Cloudflare sobre archivos temporales, comprueba la reversión con un daemon PM2 aislado y ejecuta el instalador real dos veces en un runner Linux. CI no usa el túnel ni las credenciales de la HP. La instalación local ya fue confirmada por el usuario. Quedan para el equipo real: HTTPS, inspección visual, arranque tras reinicio y comprobación de las demás aplicaciones después del cambio del túnel. No enviar contraseñas, certificados, tokens ni archivos de entorno por el chat.
+CI compila y prueba Next/Nest, revisa Bash con ShellCheck, prueba la inserción de Cloudflare sobre archivos temporales, comprueba la reversión con un daemon PM2 aislado y ejecuta el instalador real dos veces en un runner Linux. CI no usa el túnel ni las credenciales de la HP. La instalación local ya fue confirmada por el usuario. HTTPS y apertura en navegador ya fueron confirmados por el usuario. Quedan la revisión visual completa, el ensayo de actualización/reversión, la recuperación tras reinicio y la comprobación de las demás aplicaciones después del cambio del túnel. No enviar contraseñas, certificados, tokens ni archivos de entorno por el chat.

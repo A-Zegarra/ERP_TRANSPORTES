@@ -4,7 +4,7 @@ ERP para transporte terrestre desde Tacna, Perú, con operaciones internacionale
 
 ## Estado verificable
 
-**Fase 0: base técnica instalada en la HP; HTTPS y aceptación final pendientes.**
+**Fase 0: base instalada en la HP, HTTPS y acceso en navegador confirmados.**
 
 - `apps/web`: Next.js App Router, Tailwind y navegación adaptable. Inicio, alcance de módulos, configuración prevista, plan de fases y endpoint de salud.
 - `apps/api`: NestJS modular, conectado únicamente a un endpoint de salud del proceso; escucha en loopback.
@@ -12,7 +12,7 @@ ERP para transporte terrestre desde Tacna, Perú, con operaciones internacionale
 - `docs`: alcance, decisiones, criterios de aceptación y preparación del despliegue.
 - `.github/workflows`: validación de tipos, compilación y prueba de la aplicación compilada.
 - `scripts/hp-diagnostico.sh`: inventario de recursos y puertos, de solo lectura.
-- `scripts/hp-instalar.sh`: instalación por commit con releases y PM2 propios; paso Cloudflare con copia previa y validación del túnel efectivo. El usuario confirmó web/API saludables en la HP y la entrada del túnel aplicada. La comprobación HTTPS sigue pendiente.
+- `scripts/hp-instalar.sh`: instalación por commit con releases y PM2 propios; paso Cloudflare con copia previa y validación del túnel efectivo. El usuario confirmó web/API saludables en la HP y la entrada del túnel aplicada. El diagnóstico posterior confirmó HTTPS y el usuario confirmó que la página abre normalmente.
 - `scripts/hp-verificar-red.py`: diagnóstico independiente de servicios locales, HTTPS y DNS públicos; no modifica la instalación.
 
 No hay login funcional, persistencia, cotizaciones, GPS ni emisión SUNAT en esta fase. Las pantallas de módulos muestran su alcance previsto, sin métricas ficticias ni botones de guardado simulados.
@@ -24,6 +24,7 @@ Los directorios `client/`, `server/` y `tablas.sql` son la referencia heredada d
 - [Plan maestro y fases](docs/PLAN-MAESTRO.md)
 - [Arquitectura y modelo de dominio](docs/ARQUITECTURA.md)
 - [Estado y siguiente entrega](docs/ESTADO.md)
+- [Fase 1: empresa, MySQL y acceso](docs/FASE-1-EMPRESA-ACCESO.md)
 - [Trabajo con HP y Termux](docs/HP-TERMUX.md)
 - [Publicación con Cloudflare Tunnel](docs/CLOUDFLARE.md)
 

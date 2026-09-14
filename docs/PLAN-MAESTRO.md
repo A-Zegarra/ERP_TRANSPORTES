@@ -1,6 +1,6 @@
 # Plan maestro — LARAM’S CARGO INTERNACIONAL
 
-Estado inicial: fase 0 en validación. Fecha: 14 de septiembre de 2026.
+Estado al 14 de septiembre de 2026: fase 0 desplegada, salud y acceso público confirmados por el usuario; ensayos operativos pendientes documentados en `ESTADO.md`. Fase 1 planificada en `FASE-1-EMPRESA-ACCESO.md`.
 
 ## Objetivo
 
@@ -88,7 +88,7 @@ Fase 8 se divide en 8A finanzas y 8B emisión electrónica. Puede adelantarse 8A
 
 ## Límites de esta entrega
 
-Se entrega la base y el plan, no la totalidad del ERP. El cierre de fase 0 requiere evidencia de instalación en HP. No se ha accedido a datos de producción ni se han emitido comprobantes, configurado rastreadores o modificado dominios.
+La base técnica está instalada en HP y publicada mediante Cloudflare, según la salida y confirmación del usuario. Todavía no es un ERP operativo: persistencia, usuarios y módulos de negocio se implementan por fase. Las comprobaciones pendientes se conservan en `ESTADO.md`. No se han conectado datos de producción, emitido comprobantes ni configurado rastreadores.
 
 ## Referencias técnicas consultadas
 

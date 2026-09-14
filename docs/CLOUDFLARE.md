@@ -1,6 +1,6 @@
 # Publicación con Cloudflare Tunnel
 
-Decisión confirmada: el ERP se publica mediante el túnel existente de la HP. Hostname previsto: `larams.aliproinv.com`; la publicación no está verificada hasta ejecutar la instalación y recibir su comprobación HTTPS.
+Decisión confirmada: el ERP se publica mediante el túnel existente de la HP. Hostname publicado: `larams.aliproinv.com`. El 14 de septiembre de 2026 a las 15:17:30 UTC, el diagnóstico ejecutado por el usuario confirmó HTTPS con resolución normal y mediante las dos IPv4 obtenidas de DNS públicos; el usuario también confirmó apertura normal en su navegador. El primer fallo de verificación no volvió a reproducirse; su causa exacta no fue demostrada.
 
 Next.js escucha en `127.0.0.1:3100`. NestJS permanece en `127.0.0.1:3101`; no se crea otro hostname para la API ni se abren estos puertos en el router. La comunicación autenticada entre frontend y API se incorpora en fase 1. La fase 0 contiene páginas de alcance y salud, sin login ni datos operativos.
 
@@ -20,7 +20,7 @@ Next.js escucha en `127.0.0.1:3100`. NestJS permanece en `127.0.0.1:3101`; no se
 
 El script conserva la aplicación instalada y comunica que debe añadirse al túnel existente la aplicación publicada `larams.aliproinv.com` con servicio `http://127.0.0.1:3100`. No modifica un archivo local que el servicio no utilice. Configurar el hostname en el panel y comprobar su respuesta HTTPS completa este paso.
 
-El diagnóstico no revela cómo se gestiona el túnel; lo comprueba el instalador en el equipo real. No se adivinan identificadores ni se solicitan tokens por el chat. Los cambios manuales se revisan sobre la configuración efectiva, conservando las demás aplicaciones.
+En esta HP el instalador confirmó gestión mediante archivo local y aplicó la entrada con copia de `/etc/cloudflared/config.yml`. En otros equipos debe comprobarse la configuración efectiva. No se adivinan identificadores ni se solicitan tokens por el chat. Los cambios manuales se revisan sobre la configuración efectiva, conservando las demás aplicaciones.
 
 ## Acceso y GPS
 
