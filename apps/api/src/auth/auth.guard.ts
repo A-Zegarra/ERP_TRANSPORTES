@@ -18,6 +18,9 @@ export class AuthGuard implements CanActivate {
     const policy = this.reflector.getAllAndOverride<string>(policyKey, [context.getHandler(), context.getClass()]);
     if (policy === "public") return true;
     request.auth = await this.auth.authenticate(request.headers.cookie);
+    if (request.auth.mustChangePassword && policy !== "authenticated") {
+      throw new ForbiddenException("Cambia tu contraseña inicial desde Mi cuenta para continuar.");
+    }
     if (!policy || (policy !== "authenticated" && !request.auth.permissions.includes(policy))) {
       throw new ForbiddenException("No tienes permiso para esta operación.");
     }

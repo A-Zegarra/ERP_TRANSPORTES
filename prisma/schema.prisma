@@ -9,6 +9,7 @@ datasource db {
 }
 
 model Company {
+  version      Int      @default(1)
   id           String   @id @default(uuid()) @db.Char(36)
   legalName    String   @db.VarChar(200)
   tradeName    String?  @db.VarChar(200)
@@ -31,6 +32,7 @@ model Company {
 }
 
 model Branch {
+  version     Int      @default(1)
   id          String   @id @default(uuid()) @db.Char(36)
   companyId   String   @db.Char(36)
   code        String   @db.VarChar(20)
@@ -51,6 +53,7 @@ model Branch {
 }
 
 model User {
+  mustChangePassword Boolean @default(false)
   id           String       @id @default(uuid()) @db.Char(36)
   email        String       @unique @db.VarChar(254)
   displayName  String       @db.VarChar(160)
@@ -65,6 +68,7 @@ model User {
 }
 
 model Membership {
+  version     Int      @default(1)
   id          String   @id @default(uuid()) @db.Char(36)
   companyId   String   @db.Char(36)
   userId      String   @db.Char(36)

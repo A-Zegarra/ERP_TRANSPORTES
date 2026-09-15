@@ -7,12 +7,18 @@ export const Authenticated = () => SetMetadata(policyKey, "authenticated");
 export const Requires = (permission: string) => SetMetadata(policyKey, permission);
 export const permissions = {
   "company.read": "Consultar datos de empresa",
+  "company.write": "Editar datos de empresa",
+  "branches.read": "Consultar sucursales asignadas",
+  "branches.write": "Administrar sucursales",
+  "users.read": "Consultar usuarios de la empresa",
+  "users.write": "Administrar accesos de usuarios",
 } as const;
 
 export type AuthContext = {
   sessionId: string; membershipId: string; companyId: string; userId: string;
   expiresAt: Date; email: string; displayName: string; companyName: string;
   permissions: string[]; branches: { id: string; name: string }[];
+  mustChangePassword: boolean;
 };
 export type AuthRequest = IncomingMessage & { body: unknown; auth?: AuthContext };
 export type AuthResponse = { setHeader(name: string, value: string): unknown; status(code: number): AuthResponse; json(body: unknown): unknown };

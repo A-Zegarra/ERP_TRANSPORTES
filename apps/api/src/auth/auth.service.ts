@@ -1,8 +1,10 @@
-import { BadRequestException, HttpException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, HttpException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { createHash, randomBytes } from "node:crypto";
 import { DatabaseService } from "../database/database.service";
 import { AuthContext, emailAddress, sessionSeconds, sessionToken } from "./policy";
-import { verifyPassword } from "./password";
+import { hashPassword, validPassword, verifyPassword } from "./password";
+import { fields } from "../organization/validation";
+import { audit, organizationWrite } from "../organization/transaction";
 
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 const blocked = () => new HttpException("Demasiados intentos. Espera unos minutos y vuelve a intentar.", 429);
@@ -60,6 +62,8 @@ export class AuthService {
       }
       const token = randomBytes(32).toString("base64url");
       await db.$transaction(async tx => {
+        await tx.$queryRawUnsafe("SELECT id FROM companies WHERE id=? FOR UPDATE", membership.companyId);
+        await tx.$queryRawUnsafe("SELECT id FROM users WHERE id=? FOR UPDATE", user.id);
         // Revalidar el estado después del cálculo de contraseña.
         const eligible = await tx.membership.findFirst({ where: {
           id: membership.id, active: true, company: { active: true },
@@ -74,7 +78,7 @@ export class AuthService {
           companyId: membership.companyId, actorMembershipId: membership.id,
           action: "auth.login", entityType: "session", entityId: session.id,
         } });
-      });
+      }, { isolationLevel: "ReadCommitted" });
       return token;
     } finally { this.inFlight--; }
   }
@@ -97,6 +101,7 @@ export class AuthService {
       sessionId: session.id, membershipId: member.id, companyId: member.companyId, userId: member.userId,
       expiresAt: session.expiresAt, email: member.user.email, displayName: member.user.displayName,
       companyName: member.company.legalName,
+      mustChangePassword: member.user.mustChangePassword,
       permissions: [...new Set(member.roles.flatMap(item => item.role.permissions.map(p => p.permissionCode)))].sort(),
       branches: member.branches.map(item => ({ id: item.branch.id, name: item.branch.name })),
     };
@@ -110,5 +115,30 @@ export class AuthService {
         action: "auth.logout", entityType: "session", entityId: auth.sessionId,
       } });
     });
+  }
+
+  async changePassword(auth: AuthContext, input: unknown) {
+    const row = fields(input, ["currentPassword", "password", "confirmation"]);
+    if (typeof row.currentPassword !== "string" || Buffer.byteLength(row.currentPassword) > 512
+        || !validPassword(row.password) || row.password !== row.confirmation || row.password === row.currentPassword) {
+      throw new BadRequestException("Revisa la contraseña actual y repite una nueva de 15 a 128 caracteres.");
+    }
+    if (this.inFlight >= 2) throw blocked();
+    this.inFlight++;
+    try {
+      await this.throttle(auth.email);
+      const user = await this.database.client.user.findUniqueOrThrow({ where: { id: auth.userId } });
+      if (!await verifyPassword(row.currentPassword, user.passwordHash)) {
+        throw new BadRequestException("La contraseña actual no es correcta.");
+      }
+      const passwordHash = await hashPassword(row.password);
+      await organizationWrite(this.database.client, auth, null, async tx => {
+        const changed = await tx.user.updateMany({ where: { id: auth.userId, passwordHash: user.passwordHash },
+          data: { passwordHash, mustChangePassword: false } });
+        if (changed.count !== 1) throw new ConflictException("La contraseña cambió durante la operación. Vuelve a ingresar.");
+        await tx.session.updateMany({ where: { membership: { userId: auth.userId }, revokedAt: null }, data: { revokedAt: new Date() } });
+        await audit(tx, auth, "user.password_changed", "user", auth.userId);
+      });
+    } finally { this.inFlight--; }
   }
 }

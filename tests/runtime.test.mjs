@@ -68,7 +68,7 @@ test("el compilado navega, distingue MySQL pendiente y no expone operaciones de 
   const business = await fetch(`http://127.0.0.1:${apiPort}/api/v1/clients`, { method: "POST" });
   assert.equal(business.status, 404);
 
-  for (const [route, title] of [["/", "Cada viaje"], ["/login", "Bienvenido de nuevo"], ["/cotizaciones", "Cotizaciones"], ["/configuracion", "Configuración"], ["/implementacion", "Un avance, una fase."]]) {
+  for (const [route, title] of [["/", "Cada viaje"], ["/login", "Bienvenido de nuevo"], ["/cotizaciones", "Cotizaciones"], ["/implementacion", "Un avance, una fase."]]) {
     const response = await fetch(`http://127.0.0.1:${webPort}${route}`);
     assert.equal(response.status, 200, route);
     assert.equal(response.headers.get("x-content-type-options"), "nosniff");
@@ -88,4 +88,7 @@ test("el compilado navega, distingue MySQL pendiente y no expone operaciones de 
   const account = await fetch(`http://127.0.0.1:${webPort}/mi-cuenta`, { redirect: "manual" });
   assert.equal(account.status, 307);
   assert.equal(account.headers.get("location"), "/login");
+  const settings = await fetch("http://127.0.0.1:" + webPort + "/configuracion", { redirect: "manual" });
+  assert.equal(settings.status, 307);
+  assert.equal(settings.headers.get("location"), "/login");
 });

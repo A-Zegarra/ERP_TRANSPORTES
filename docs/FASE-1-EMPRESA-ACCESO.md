@@ -1,10 +1,10 @@
 # Fase 1 — Empresa, MySQL y acceso
 
-Estado: 1A.1 instalada y confirmada por el usuario. 1A.2 implementada en esta rama; pendiente de instalar y aceptar en la HP. 1A.3 y 1B siguen planificadas. La evidencia de CI corresponde al commit de cada entrega.
+Estado: 1A.2 instalada, registro e inicio de sesión confirmados por el usuario. 1A.3 implementada y pendiente de instalar/aceptar; 1B planificada. La evidencia de CI corresponde al commit de cada entrega. Ver [administración 1A.3](ADMINISTRACION-1A3.md).
 
 ## Punto de partida confirmado
 
-La HP tiene instalada 1A.1, commit `92b261bbd7cadc58037b26ecce3bbe3b3c921c8d`, en `/home/alvaro/apps/larams-erp`. El usuario confirmó el 14 de septiembre: migraciones aplicadas, 11 tablas presentes, web/API saludables y `database: ok, schemaVersion: 1`. Existen respaldos previos y posteriores. Cloudflare ya funciona y PM2 tiene arranque habilitado.
+La HP tiene instalada 1A.2, commit `76ffd7f152a085ba3bd82cc3a0bb077da878c504`, en `/home/alvaro/apps/larams-erp`. El usuario compartió el 15 de septiembre migraciones aplicadas, 13 tablas y web/API saludables. Después confirmó el registro del administrador e inicio de sesión. Existen respaldos previos y posteriores. Cloudflare funciona y PM2 tiene arranque habilitado.
 
 ## Entregas controladas
 

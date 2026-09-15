@@ -22,7 +22,8 @@ Fecha de referencia: 15 de septiembre de 2026.
 - API NestJS con prefijo `/api/v1` y salud del proceso.
 - Cliente Prisma y adaptador MySQL, migraciones aditivas y 13 tablas para organización, acceso y control de intentos.
 - Base propia, cuentas MySQL limitadas, respaldos y readiness (1A.1 ya confirmada en la HP).
-- Login, Mi cuenta, cierre de sesión, sesiones con vencimiento/revocación, autorización en API y alta inicial por terminal (1A.2, pendiente de instalar en la HP).
+- Login, Mi cuenta, cierre de sesión, sesiones con vencimiento/revocación, autorización en API y alta inicial por terminal (1A.2 instalada; registro e ingreso confirmados en la HP).
+- Empresa, sucursales, usuarios, perfiles Administrador/Consulta, cambio de contraseña, paginación y protección de edición concurrente (1A.3 implementada, pendiente de instalar en la HP).
 - Pipeline CI, prueba de humo de compilados y diagnóstico de la HP.
 - Instalador por commit, releases, procesos PM2 propios, comprobación de salud y recuperación automática de código ante un arranque fallido.
 - Publicación preparada para el túnel Cloudflare local existente, con copia previa, validación y detección de conflictos; alternativa indicada para túneles administrados desde el panel.
@@ -30,7 +31,7 @@ Fecha de referencia: 15 de septiembre de 2026.
 
 ## No implementado todavía
 
-CRUD de configuración/usuarios, MFA, recuperación de contraseña por correo, carga de archivos, datos operativos, cotizaciones, pagos, contabilidad, telemetría, integración SUNAT y migración del sistema heredado.
+Logos/colores y consulta de auditoría (1B), edición de identidad y perfiles personalizados, MFA, recuperación de contraseña por correo o por otro administrador, carga de archivos, datos operativos, cotizaciones, pagos, contabilidad, telemetría, integración SUNAT y migración del sistema heredado.
 
 ## Fase 0: despliegue y acceso confirmados
 
@@ -72,7 +73,9 @@ El despliegue y el acceso público quedan validados. Los ensayos operativos pend
 
 El usuario confirmó la instalación de 1A.1, commit `92b261bbd7cadc58037b26ecce3bbe3b3c921c8d`: lint, tipos, build y smoke aprobados; MySQL preparado, migración aplicada, 11 tablas presentes y JSON `{"status":"ok","service":"larams-api","database":"ok","schemaVersion":1}`. Respaldos reportados: `larams-20260914T203302223214Z-antes.sql.gz` y `larams-20260914T203335152803Z-despues.sql.gz` dentro de `shared/backups`. PM2 habilitado. Esta es evidencia aportada por el usuario, no acceso SSH desde desarrollo.
 
-Siguiente paso: instalar 1A.2 y crear el administrador con contraseña elegida en la terminal. [Alcance y controles](ACCESO-1A2.md). CI incluye actualización desde 1A.1, conservación de datos y contraseña, alta por TTY, pruebas de acceso y recuperación de código compatible. El resultado aprobado se vincula al commit entregado. Después, 1A.3 habilita edición de empresa/sucursales y usuarios. Los ensayos pendientes en la HP, revisión móvil y respaldo externo siguen abiertos antes de operar con información real.
+El 15 de septiembre el usuario confirmó la instalación de 1A.2, commit `76ffd7f152a085ba3bd82cc3a0bb077da878c504`: validaciones/build aprobados, 13 tablas, servicios saludables y PM2 habilitado. Respaldos: `larams-20260915T044213117510Z-antes.sql.gz` y `larams-20260915T044228565147Z-despues.sql.gz`. El primer alta se detuvo por validación de contraseña; posteriormente confirmó registro del administrador e inicio de sesión. Esto acredita ingreso, no cierre de sesión ni reinicio del equipo.
+
+Siguiente paso: instalar y aceptar 1A.3, con edición de empresa/sucursales y administración de usuarios. [Alcance y controles](ADMINISTRACION-1A3.md). CI comprueba actualización desde 1A.2 con administrador existente, conservación de datos/hash, permisos, concurrencia, paginación, recuperación y restauración. Después sigue 1B: logos, colores y consulta de auditoría. Los ensayos pendientes en la HP, revisión móvil y respaldo externo siguen abiertos.
 
 ## Datos a concretar en su fase
 

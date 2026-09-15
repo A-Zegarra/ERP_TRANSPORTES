@@ -4,8 +4,9 @@ import { DatabaseModule } from "../database/database.module";
 import { AuthController } from "./auth.controller";
 import { AuthGuard } from "./auth.guard";
 import { AuthService } from "./auth.service";
-import { CompanyController } from "./company.controller";
+import { OrganizationController } from "../organization/organization.controller";
+import { OrganizationService } from "../organization/organization.service";
 
-@Module({ imports: [DatabaseModule], controllers: [AuthController, CompanyController],
-  providers: [AuthService, { provide: APP_GUARD, useClass: AuthGuard }] })
+@Module({ imports: [DatabaseModule], controllers: [AuthController, OrganizationController],
+  providers: [AuthService, OrganizationService, { provide: APP_GUARD, useClass: AuthGuard }] })
 export class AuthModule {}

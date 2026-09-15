@@ -12,7 +12,7 @@ import time
 from urllib.request import urlopen
 
 REPO = Path(__file__).resolve().parents[1]
-OLD = "92b261bbd7cadc58037b26ecce3bbe3b3c921c8d"
+OLD = "76ffd7f152a085ba3bd82cc3a0bb077da878c504"
 CONTAINER = "larams-mysql-ci"
 
 
@@ -67,7 +67,7 @@ def main():
             assert attempt.returncode == 2, attempt.stdout + attempt.stderr
             assert not (folder / "shared/mysql-state.json").exists()
 
-        def ready(version=2):
+        def ready(version=3):
             for _ in range(20):
                 try:
                     with urlopen("http://127.0.0.1:3101/api/v1/ready", timeout=7) as response:
@@ -100,23 +100,27 @@ def main():
             sql("DROP USER 'larams_app'@'127.0.0.1';")
             print("Colisiones con base y cuenta ajenas: protegidas.", flush=True)
 
-            previous_script = scratch / "phase1a1.sh"
+            previous_script = scratch / "phase1a2.sh"
             run(["curl", "-fsSL", "--connect-timeout", "15", "--max-time", "60",
                  "https://raw.githubusercontent.com/A-Zegarra/ERP_TRANSPORTES/" + OLD + "/scripts/hp-instalar.sh",
                  "-o", str(previous_script)])
             run(["bash", str(previous_script), "--local-only"], env=dict(env, LARAMS_REF=OLD), timeout=600)
             assert (root / "current").resolve().name == OLD
-            ready(1)
+            ready(2)
+            run(["python3", str(REPO / "tests/ci_admin_tty.py")], env=env, timeout=120)
+            original_hash = sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_erp")
             sql("INSERT INTO companies (id,legalName,countryCode,currencyCode,timeZone,updatedAt)"
                 " VALUES ('00000000-0000-4000-8000-000000000001','Persistencia CI','PE','PEN','America/Lima',UTC_TIMESTAMP(3));",
                 "larams_erp")
             run(["bash", str(REPO / "scripts/hp-instalar.sh"), "--local-only"], env=env, timeout=600)
             ready()
-            assert sql("SELECT legalName FROM companies;", "larams_erp") == "Persistencia CI"
-            # Retirar solo esta fila de ensayo para ejercitar el alta inicial desde base vacía.
+            assert sql("SELECT legalName FROM companies WHERE id='00000000-0000-4000-8000-000000000001';", "larams_erp") == "Persistencia CI"
+            assert sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_erp") == original_hash
+            assert sql("SELECT mustChangePassword FROM users WHERE email='admin-ci@example.invalid';", "larams_erp") == "0"
+            # Retirar únicamente la fila testigo de actualización.
             sql("DELETE FROM companies WHERE id='00000000-0000-4000-8000-000000000001';", "larams_erp")
-            assert sql("SELECT COUNT(*) FROM companies;", "larams_erp") == "0"
-            assert sql("SELECT COUNT(*) FROM users;", "larams_erp") == "0"
+            assert sql("SELECT COUNT(*) FROM companies;", "larams_erp") == "1"
+            assert sql("SELECT COUNT(*) FROM users;", "larams_erp") == "1"
             state = root / "shared/mysql-state.json"
             before = hashlib.sha256(state.read_bytes()).hexdigest()
             for name in ["mysql-state.json", "api.env", "migrate.env"]:
@@ -125,8 +129,8 @@ def main():
 
             test_env = dict(env, LARAMS_ENV_FILE=str(root / "shared/api.env"))
             run(["pnpm", "test:db"], cwd=REPO, env=test_env, timeout=90)
-            run(["python3", str(REPO / "tests/ci_admin_tty.py")], env=env, timeout=120)
             run(["pnpm", "test:auth"], cwd=REPO, env=test_env, timeout=150)
+            run(["pnpm", "test:organization"], cwd=REPO, env=test_env, timeout=150)
             admin_before = sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_erp")
             sql("INSERT INTO companies (id,legalName,countryCode,currencyCode,timeZone,updatedAt)"
                 " VALUES ('00000000-0000-4000-8000-000000000001','Persistencia CI','PE','PEN','America/Lima',UTC_TIMESTAMP(3));",
@@ -135,12 +139,12 @@ def main():
             assert hashlib.sha256(state.read_bytes()).hexdigest() == before
             assert sql("SELECT legalName FROM companies WHERE id='00000000-0000-4000-8000-000000000001';", "larams_erp") == "Persistencia CI"
             assert sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_erp") == admin_before
-            assert sql("SELECT COUNT(*) FROM _prisma_migrations WHERE finished_at IS NOT NULL;", "larams_erp") == "2"
+            assert sql("SELECT COUNT(*) FROM _prisma_migrations WHERE finished_at IS NOT NULL;", "larams_erp") == "3"
 
             # Recuperar código anterior conservando el esquema ampliado y el administrador.
             latest = (root / "current").resolve()
             run(["node", str(REPO / "scripts/hp-activar.mjs"), "rollback", str(root)], env=env, timeout=90)
-            ready(1)
+            ready(2)
             assert (root / "current").resolve().name == OLD
             run(["node", str(REPO / "scripts/hp-activar.mjs"), "activate", str(root), str(latest)], env=env, timeout=90)
             ready()
@@ -150,7 +154,7 @@ def main():
             run(["docker", "restart", CONTAINER], timeout=90)
             wait_mysql()
             ready()
-            print("Actualización desde 1A.1, reintento, recuperación de código y reconexión MySQL: correctos.", flush=True)
+            print("Actualización desde 1A.2 con administrador existente, reintento, recuperación de código y reconexión MySQL: correctos.", flush=True)
 
             backup = sorted((root / "shared/backups").glob("*-despues.sql.gz"))[-1]
             expected = Path(str(backup) + ".sha256").read_text().split()[0]

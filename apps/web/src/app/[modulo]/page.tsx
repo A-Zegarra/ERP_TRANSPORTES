@@ -6,7 +6,7 @@ import { modules } from "@/lib/modules";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return modules.map(({ slug }) => ({ modulo: slug }));
+  return modules.filter(({ slug }) => slug !== "configuracion").map(({ slug }) => ({ modulo: slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ modulo: string }> }) {

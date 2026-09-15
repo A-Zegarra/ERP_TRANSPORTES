@@ -1,5 +1,9 @@
 # Flujo de trabajo: GitHub → Termux → HP
 
+## Actualización 1A.3
+
+El usuario confirmó 1A.2 (commit `76ffd7f152a085ba3bd82cc3a0bb077da878c504`), el registro del administrador y el inicio de sesión. La siguiente actualización conserva esa cuenta: instalar el commit entregado con `--local-only`, comprobar `schemaVersion: 3` y abrir `/configuracion`. No repetir el alta inicial. [Operación y aceptación 1A.3](ADMINISTRACION-1A3.md).
+
 ## Diagnóstico confirmado el 14 de septiembre de 2026
 
 Equipo del usuario: `alvaro@ali-home-server`, Ubuntu 26.04 LTS x86_64; Node 24.19.0, pnpm 11.1.1, PM2 instalado, MySQL 8.4.11 y cloudflared 2026.8.2. Túnel activo. Memoria total 7371 MiB, disponible 5740 MiB; disco libre 76 GiB. Las direcciones 3100/3101 y la carpeta propuesta estaban disponibles al ejecutar el diagnóstico; el instalador vuelve a comprobarlas.
