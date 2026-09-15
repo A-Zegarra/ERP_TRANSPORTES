@@ -20,7 +20,7 @@ export default function HomePage() {
     </section>
     <section className="notice" aria-label="Estado de la implementación"><ShieldCheck size={22} aria-hidden="true" /><div>
       <strong>La operación comienza con una buena base.</strong>
-      <p>Esta versión permite revisar la estructura y el alcance. El acceso de usuarios y el registro de datos se habilitarán a partir de la fase 1.</p>
+      <p>El acceso del equipo ya está habilitado. El registro de empresa y las funciones de operación se incorporarán por entregas.</p>
     </div></section>
     <div className="section-heading"><div><span className="eyebrow">ÁREAS DE TRABAJO</span><h2>Todo conectado a tu operación</h2></div><span className="subtle">Implementación por fases</span></div>
     <section className="module-grid" aria-label="Módulos del ERP">{modules.map((module, i) =>

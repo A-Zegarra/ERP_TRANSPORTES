@@ -49,7 +49,7 @@ jobs:
         run: pnpm build
       - name: Comprobar navegación y límites de la API
         run: pnpm test:smoke
-      - name: MySQL 8.4, actualización desde fase 0 y restauración
+      - name: MySQL 8.4, acceso, actualización desde 1A.1 y restauración
         env:
           LARAMS_REF: ${{ github.event.pull_request.head.sha || github.sha }}
           LARAMS_TEST_DATABASE: '1'

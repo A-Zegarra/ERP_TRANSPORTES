@@ -12,7 +12,7 @@ import time
 from urllib.request import urlopen
 
 REPO = Path(__file__).resolve().parents[1]
-OLD = "efb08c975805d20dac38b6a69ce5dc25e9dadfd5"
+OLD = "92b261bbd7cadc58037b26ecce3bbe3b3c921c8d"
 CONTAINER = "larams-mysql-ci"
 
 
@@ -67,12 +67,12 @@ def main():
             assert attempt.returncode == 2, attempt.stdout + attempt.stderr
             assert not (folder / "shared/mysql-state.json").exists()
 
-        def ready():
+        def ready(version=2):
             for _ in range(20):
                 try:
                     with urlopen("http://127.0.0.1:3101/api/v1/ready", timeout=7) as response:
                         result = json.load(response)
-                        if result.get("database") == "ok" and result.get("schemaVersion") == 1:
+                        if result.get("database") == "ok" and result.get("schemaVersion") == version:
                             return
                 except Exception:
                     pass
@@ -100,14 +100,21 @@ def main():
             sql("DROP USER 'larams_app'@'127.0.0.1';")
             print("Colisiones con base y cuenta ajenas: protegidas.", flush=True)
 
-            previous_script = scratch / "phase0.sh"
+            previous_script = scratch / "phase1a1.sh"
             run(["curl", "-fsSL", "--connect-timeout", "15", "--max-time", "60",
                  "https://raw.githubusercontent.com/A-Zegarra/ERP_TRANSPORTES/" + OLD + "/scripts/hp-instalar.sh",
                  "-o", str(previous_script)])
             run(["bash", str(previous_script), "--local-only"], env=dict(env, LARAMS_REF=OLD), timeout=600)
             assert (root / "current").resolve().name == OLD
+            ready(1)
+            sql("INSERT INTO companies (id,legalName,countryCode,currencyCode,timeZone,updatedAt)"
+                " VALUES ('00000000-0000-4000-8000-000000000001','Persistencia CI','PE','PEN','America/Lima',UTC_TIMESTAMP(3));",
+                "larams_erp")
             run(["bash", str(REPO / "scripts/hp-instalar.sh"), "--local-only"], env=env, timeout=600)
             ready()
+            assert sql("SELECT legalName FROM companies;", "larams_erp") == "Persistencia CI"
+            # Retirar solo esta fila de ensayo para ejercitar el alta inicial desde base vacía.
+            sql("DELETE FROM companies WHERE id='00000000-0000-4000-8000-000000000001';", "larams_erp")
             assert sql("SELECT COUNT(*) FROM companies;", "larams_erp") == "0"
             assert sql("SELECT COUNT(*) FROM users;", "larams_erp") == "0"
             state = root / "shared/mysql-state.json"
@@ -118,19 +125,32 @@ def main():
 
             test_env = dict(env, LARAMS_ENV_FILE=str(root / "shared/api.env"))
             run(["pnpm", "test:db"], cwd=REPO, env=test_env, timeout=90)
+            run(["python3", str(REPO / "tests/ci_admin_tty.py")], env=env, timeout=120)
+            run(["pnpm", "test:auth"], cwd=REPO, env=test_env, timeout=150)
+            admin_before = sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_erp")
             sql("INSERT INTO companies (id,legalName,countryCode,currencyCode,timeZone,updatedAt)"
                 " VALUES ('00000000-0000-4000-8000-000000000001','Persistencia CI','PE','PEN','America/Lima',UTC_TIMESTAMP(3));",
                 "larams_erp")
             run(["bash", str(REPO / "scripts/hp-instalar.sh"), "--local-only"], env=env, timeout=240)
             assert hashlib.sha256(state.read_bytes()).hexdigest() == before
-            assert sql("SELECT legalName FROM companies;", "larams_erp") == "Persistencia CI"
-            assert sql("SELECT COUNT(*) FROM _prisma_migrations WHERE finished_at IS NOT NULL;", "larams_erp") == "1"
+            assert sql("SELECT legalName FROM companies WHERE id='00000000-0000-4000-8000-000000000001';", "larams_erp") == "Persistencia CI"
+            assert sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_erp") == admin_before
+            assert sql("SELECT COUNT(*) FROM _prisma_migrations WHERE finished_at IS NOT NULL;", "larams_erp") == "2"
+
+            # Recuperar código anterior conservando el esquema ampliado y el administrador.
+            latest = (root / "current").resolve()
+            run(["node", str(REPO / "scripts/hp-activar.mjs"), "rollback", str(root)], env=env, timeout=90)
+            ready(1)
+            assert (root / "current").resolve().name == OLD
+            run(["node", str(REPO / "scripts/hp-activar.mjs"), "activate", str(root), str(latest)], env=env, timeout=90)
+            ready()
+            assert sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_erp") == admin_before
 
             # Conexión nueva tras vaciar el caché de caching_sha2_password del servidor.
             run(["docker", "restart", CONTAINER], timeout=90)
             wait_mysql()
             ready()
-            print("Actualización desde fase 0, reintento y reconexión tras reinicio MySQL: correctos.", flush=True)
+            print("Actualización desde 1A.1, reintento, recuperación de código y reconexión MySQL: correctos.", flush=True)
 
             backup = sorted((root / "shared/backups").glob("*-despues.sql.gz"))[-1]
             expected = Path(str(backup) + ".sha256").read_text().split()[0]
@@ -138,8 +158,9 @@ def main():
             sql("CREATE DATABASE larams_restore_ci CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
             with gzip.open(backup, "rt") as saved:
                 sql(saved.read(), "larams_restore_ci")
-            assert sql("SELECT legalName FROM companies;", "larams_restore_ci") == "Persistencia CI"
-            assert sql("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='larams_restore_ci';") == "12"
+            assert sql("SELECT legalName FROM companies WHERE id='00000000-0000-4000-8000-000000000001';", "larams_restore_ci") == "Persistencia CI"
+            assert sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_restore_ci") == admin_before
+            assert sql("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='larams_restore_ci';") == "14"
             # Comparar también índices y relaciones, no solo filas restauradas.
             url = "mysql://root:LaramsCiOnly8%21@127.0.0.1:33306/larams_restore_ci"
             run(["pnpm", "exec", "prisma", "migrate", "diff", "--from-config-datasource",

@@ -15,6 +15,8 @@ export class DatabaseService implements OnModuleDestroy {
     try {
       // Comprobar una tabla migrada, no únicamente la existencia de un socket.
       await this.client.company.findFirst({ select: { id: true } });
+      await this.client.bootstrap.findUnique({ where: { id: 1 }, select: { id: true } });
+      await this.client.authThrottle.findFirst({ select: { key: true } });
       return true;
     } catch {
       // No devolver URLs, SQL, nombres de usuario o errores del driver al cliente.

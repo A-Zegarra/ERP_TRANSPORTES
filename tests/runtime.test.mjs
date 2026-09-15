@@ -59,10 +59,16 @@ test("el compilado navega, distingue MySQL pendiente y no expone operaciones de 
   assert.equal(ready.headers.get("cache-control"), "no-store");
   const unavailable = await ready.text();
   assert.ok(!/mysql:\/\/|password|DATABASE_URL|stack/i.test(unavailable));
+  const profile = await fetch(`http://127.0.0.1:${apiPort}/api/v1/auth/me`);
+  assert.equal(profile.status, 401);
+  const forged = await fetch(`http://127.0.0.1:${apiPort}/api/v1/auth/login`, {
+    method: "POST", headers: { "Content-Type": "application/json", Origin: "https://otro.aliproinv.com" }, body: "{}",
+  });
+  assert.equal(forged.status, 403);
   const business = await fetch(`http://127.0.0.1:${apiPort}/api/v1/clients`, { method: "POST" });
   assert.equal(business.status, 404);
 
-  for (const [route, title] of [["/", "Cada viaje"], ["/cotizaciones", "Cotizaciones"], ["/configuracion", "Configuración"], ["/implementacion", "Un avance, una fase."]]) {
+  for (const [route, title] of [["/", "Cada viaje"], ["/login", "Bienvenido de nuevo"], ["/cotizaciones", "Cotizaciones"], ["/configuracion", "Configuración"], ["/implementacion", "Un avance, una fase."]]) {
     const response = await fetch(`http://127.0.0.1:${webPort}${route}`);
     assert.equal(response.status, 200, route);
     assert.equal(response.headers.get("x-content-type-options"), "nosniff");
@@ -79,4 +85,7 @@ test("el compilado navega, distingue MySQL pendiente y no expone operaciones de 
   assert.equal(missing.status, 404);
   const write = await fetch(`http://127.0.0.1:${webPort}/api/health`, { method: "POST" });
   assert.equal(write.status, 405);
+  const account = await fetch(`http://127.0.0.1:${webPort}/mi-cuenta`, { redirect: "manual" });
+  assert.equal(account.status, 307);
+  assert.equal(account.headers.get("location"), "/login");
 });
