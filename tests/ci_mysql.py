@@ -117,9 +117,8 @@ def main():
             assert sql("SELECT legalName FROM companies WHERE id='00000000-0000-4000-8000-000000000001';", "larams_erp") == "Persistencia CI"
             assert sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_erp") == original_hash
             assert sql("SELECT mustChangePassword FROM users WHERE email='admin-ci@example.invalid';", "larams_erp") == "0"
-            # Retirar únicamente la fila testigo de actualización.
-            sql("DELETE FROM companies WHERE id='00000000-0000-4000-8000-000000000001';", "larams_erp")
-            assert sql("SELECT COUNT(*) FROM companies;", "larams_erp") == "1"
+            # Conservar la empresa testigo y los perfiles añadidos por la migración durante todo el ensayo.
+            assert sql("SELECT COUNT(*) FROM companies;", "larams_erp") == "2"
             assert sql("SELECT COUNT(*) FROM users;", "larams_erp") == "1"
             state = root / "shared/mysql-state.json"
             before = hashlib.sha256(state.read_bytes()).hexdigest()
@@ -132,9 +131,6 @@ def main():
             run(["pnpm", "test:auth"], cwd=REPO, env=test_env, timeout=150)
             run(["pnpm", "test:organization"], cwd=REPO, env=test_env, timeout=150)
             admin_before = sql("SELECT passwordHash FROM users WHERE email='admin-ci@example.invalid';", "larams_erp")
-            sql("INSERT INTO companies (id,legalName,countryCode,currencyCode,timeZone,updatedAt)"
-                " VALUES ('00000000-0000-4000-8000-000000000001','Persistencia CI','PE','PEN','America/Lima',UTC_TIMESTAMP(3));",
-                "larams_erp")
             run(["bash", str(REPO / "scripts/hp-instalar.sh"), "--local-only"], env=env, timeout=240)
             assert hashlib.sha256(state.read_bytes()).hexdigest() == before
             assert sql("SELECT legalName FROM companies WHERE id='00000000-0000-4000-8000-000000000001';", "larams_erp") == "Persistencia CI"
