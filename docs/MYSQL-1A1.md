@@ -1,5 +1,7 @@
 # MySQL — entrega 1A.1
 
+Referencia de la entrega instalada y confirmada el 14 de septiembre. La ampliación de acceso, dos tablas adicionales y readiness versión 2 se documentan en [1A.2](ACCESO-1A2.md).
+
 Esta entrega prepara persistencia; no habilita login ni formularios de negocio. No importa datos heredados ni crea empresas, usuarios de acceso o ejemplos. La instalación de la HP se acredita únicamente después de recibir su resultado.
 
 ## Recursos propios

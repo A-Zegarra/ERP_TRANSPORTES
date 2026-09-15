@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Navigation } from "@/components/navigation";
 import "./globals.css";
 
@@ -13,7 +14,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <a href="#contenido" className="skip-link">Saltar al contenido</a>
     <aside className="sidebar"><Navigation /></aside>
     <div className="app-main">
-      <header className="topbar"><span>Gestión de transporte</span><span className="preview-badge">Vista inicial · Fase 0</span></header>
+      <header className="topbar"><span>Gestión de transporte</span><Link className="account-link" href="/mi-cuenta">Mi cuenta →</Link></header>
       <main id="contenido" tabIndex={-1}>{children}</main>
       <footer className="footer">LARAM’S CARGO INTERNACIONAL <span>Perú · Chile · Rutas terrestres</span></footer>
     </div>

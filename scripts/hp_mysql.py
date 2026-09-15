@@ -18,7 +18,8 @@ from urllib.parse import quote
 DATABASE = "larams_erp"
 ACCOUNTS = {"app": "larams_app", "migrate": "larams_migrate"}
 TABLES = {"companies", "branches", "users", "memberships", "roles", "permissions",
-          "role_permissions", "user_roles", "branch_access", "sessions", "audit_events"}
+          "role_permissions", "user_roles", "branch_access", "sessions", "audit_events",
+          "auth_throttles", "system_bootstrap"}
 
 
 class SafeError(Exception):
@@ -196,7 +197,7 @@ class DatabaseSetup:
             command(args + [DATABASE], "SELECT id FROM companies LIMIT 1;")
         finally:
             filename.unlink(missing_ok=True)
-        print("Conexión de aplicación comprobada; 11 tablas base presentes.", flush=True)
+        print("Conexión de aplicación comprobada; " + str(len(TABLES)) + " tablas base presentes.", flush=True)
 
     def backup(self, label):
         self.load()

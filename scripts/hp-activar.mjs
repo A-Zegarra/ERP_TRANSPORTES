@@ -112,7 +112,7 @@ async function health(release) {
       if (manifest(release).requiresDatabase) {
         const response = await fetch("http://127.0.0.1:3101/api/v1/ready", { signal: AbortSignal.timeout(6500), redirect: "error" });
         const body = await response.json();
-        if (!response.ok || body.status !== "ok" || body.database !== "ok" || body.schemaVersion !== 1) {
+        if (!response.ok || body.status !== "ok" || body.database !== "ok" || body.schemaVersion !== manifest(release).schemaVersion) {
           throw new Error("MySQL no está preparado.");
         }
       }

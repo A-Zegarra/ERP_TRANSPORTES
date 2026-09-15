@@ -4,17 +4,17 @@
 
 Monorepositorio pnpm con frontend Next.js y backend NestJS en Node.js. Un único backend organizado por dominios; trabajadores y adaptadores se despliegan aparte cuando su fase lo requiere. MySQL conserva las operaciones relacionales.
 
-| Componente | Responsabilidad | Situación en 1A.1 |
+| Componente | Responsabilidad | Situación en 1A.2 |
 |---|---|---|
 | `apps/web` | Pantallas Next.js/React, navegación, Tailwind | Implementado como base navegable |
-| `apps/api` | API REST, reglas de negocio, permisos, acceso a MySQL | Salud y conexión MySQL; negocio y login pendientes |
-| `prisma` | Esquema y migraciones MySQL | Cliente, adaptador MySQL y primera migración de 11 tablas |
+| `apps/api` | API REST, reglas de negocio, permisos, acceso a MySQL | Salud, MySQL, sesiones y autorización; módulos operativos pendientes |
+| `prisma` | Esquema y migraciones MySQL | Cliente, adaptador MySQL y dos migraciones, 13 tablas de aplicación |
 | Trabajador Node/BullMQ | Importar, exportar, emitir, reintentar | Introducir con el primer proceso duradero |
 | Redis | Cola y caché selectiva | No se instala en la fase 0 |
 | Almacenamiento de archivos | Adjuntos, evidencias, PDFs, XML/CDR | Pendiente; rutas fuera de los directorios de release |
 | Adaptador de telemetría | API de Traccar/proveedor o ingestión autorizada | Fase 9 |
 
-Prisma CLI, cliente y adaptador MariaDB (compatible con MySQL) comparten la versión 7.10.0. Pool inicial de cinco conexiones, servicio único NestJS y configuración privada fuera de las releases. Las claves compuestas impiden asignar sucursales, roles, sesiones o actores de auditoría a una membresía de otra empresa. Esto no sustituye la autorización ni los filtros de lectura, que se implementan en 1A.2.
+Prisma CLI, cliente y adaptador MariaDB (compatible con MySQL) comparten la versión 7.10.0. Pool inicial de cinco conexiones, servicio único NestJS y configuración privada fuera de las releases. Las claves compuestas impiden asignar sucursales, roles, sesiones o actores de auditoría a una membresía de otra empresa. La autorización global de 1A.2 y las consultas derivadas de la sesión completan ese control para las rutas implementadas.
 
 ## Fronteras de responsabilidad
 

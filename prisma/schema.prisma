@@ -24,6 +24,7 @@ model Company {
   memberships  Membership[]
   roles        Role[]
   auditEvents  AuditEvent[]
+  bootstrap    Bootstrap?
 
   @@unique([countryCode, documentType, taxId])
   @@map("companies")
@@ -58,6 +59,7 @@ model User {
   createdAt    DateTime     @default(now()) @db.DateTime(3)
   updatedAt    DateTime     @updatedAt @db.DateTime(3)
   memberships  Membership[]
+  bootstrap    Bootstrap?
 
   @@map("users")
 }
@@ -175,4 +177,24 @@ model AuditEvent {
   @@index([companyId, createdAt, id])
   @@index([companyId, actorMembershipId])
   @@map("audit_events")
+}
+
+model AuthThrottle {
+  key      String   @id @db.Char(64)
+  attempts Int      @db.UnsignedInt
+  resetAt  DateTime @db.DateTime(3)
+
+  @@index([resetAt])
+  @@map("auth_throttles")
+}
+
+model Bootstrap {
+  id        Int      @id
+  companyId String   @unique @db.Char(36)
+  userId    String   @unique @db.Char(36)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("system_bootstrap")
 }

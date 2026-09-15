@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Fecha de referencia: 14 de septiembre de 2026.
+Fecha de referencia: 15 de septiembre de 2026.
 
 ## Decisiones confirmadas por el usuario
 
@@ -20,8 +20,9 @@ Fecha de referencia: 14 de septiembre de 2026.
 - Workspace independiente del código heredado: `apps/web` y `apps/api`.
 - Next.js, React, TypeScript y Tailwind; páginas navegables con alcances explícitos.
 - API NestJS con prefijo `/api/v1` y salud del proceso.
-- Cliente Prisma y adaptador MySQL, migración inicial de 11 tablas para organización y futuro acceso.
-- Base propia, cuentas MySQL limitadas, respaldo previo/posterior y comprobación real de conexión en `/api/v1/ready` (1A.1, pendiente de aplicar en la HP).
+- Cliente Prisma y adaptador MySQL, migraciones aditivas y 13 tablas para organización, acceso y control de intentos.
+- Base propia, cuentas MySQL limitadas, respaldos y readiness (1A.1 ya confirmada en la HP).
+- Login, Mi cuenta, cierre de sesión, sesiones con vencimiento/revocación, autorización en API y alta inicial por terminal (1A.2, pendiente de instalar en la HP).
 - Pipeline CI, prueba de humo de compilados y diagnóstico de la HP.
 - Instalador por commit, releases, procesos PM2 propios, comprobación de salud y recuperación automática de código ante un arranque fallido.
 - Publicación preparada para el túnel Cloudflare local existente, con copia previa, validación y detección de conflictos; alternativa indicada para túneles administrados desde el panel.
@@ -29,11 +30,11 @@ Fecha de referencia: 14 de septiembre de 2026.
 
 ## No implementado todavía
 
-Autenticación, autorización de peticiones, CRUD de configuración, carga de archivos, datos operativos, cotizaciones, pagos, contabilidad, telemetría, integración SUNAT y migración del sistema heredado.
+CRUD de configuración/usuarios, MFA, recuperación de contraseña por correo, carga de archivos, datos operativos, cotizaciones, pagos, contabilidad, telemetría, integración SUNAT y migración del sistema heredado.
 
 ## Fase 0: despliegue y acceso confirmados
 
-Validación local realizada: instalación con lockfile, lint, TypeScript, `prisma validate`, compilación de web/API y prueba HTTP del frontend standalone, estilos, navegación, 404 y API de salud. El usuario proporcionó el diagnóstico de la HP: Ubuntu 26.04 x86_64, Node 24.19.0, pnpm 11.1.1, MySQL 8.4.11, cloudflared 2026.8.2 activo, 5740 MiB de memoria disponible y 76 GiB libres. El usuario instaló en la HP el commit `efb08c975805d20dac38b6a69ce5dc25e9dadfd5`: dependencias, lint, tipos, esquema, compilación y prueba HTTP aprobados; web y API arrancaron bajo PM2 y respondieron correctamente. MySQL del ERP sigue pendiente de fase 1. El usuario confirmó que la página abre normalmente en su navegador. Esto acredita el acceso visual inicial, no una revisión completa de todas las pantallas ni de todos los tamaños de dispositivo.
+Validación local realizada: instalación con lockfile, lint, TypeScript, `prisma validate`, compilación de web/API y prueba HTTP del frontend standalone, estilos, navegación, 404 y API de salud. El usuario proporcionó el diagnóstico de la HP: Ubuntu 26.04 x86_64, Node 24.19.0, pnpm 11.1.1, MySQL 8.4.11, cloudflared 2026.8.2 activo, 5740 MiB de memoria disponible y 76 GiB libres. El usuario instaló en la HP el commit `efb08c975805d20dac38b6a69ce5dc25e9dadfd5`: dependencias, lint, tipos, esquema, compilación y prueba HTTP aprobados; web y API arrancaron bajo PM2 y respondieron correctamente. En esa entrega MySQL del ERP todavía estaba pendiente de fase 1. El usuario confirmó que la página abre normalmente en su navegador. Esto acredita el acceso visual inicial, no una revisión completa de todas las pantallas ni de todos los tamaños de dispositivo.
 
 - [x] Confirmar recursos actuales de la HP, versiones y puertos con el diagnóstico aportado por el usuario.
 - [x] Verificar disponibilidad inicial de `/home/alvaro/apps/larams-erp` y 3100/3101; nombres PM2 reservados en el instalador y sujetos a comprobación antes de usarlos.
@@ -69,9 +70,9 @@ El despliegue y el acceso público quedan validados. Los ensayos operativos pend
 
 ## Siguiente unidad de trabajo
 
-Fase 1A.1 implementada en la rama `feat/fase-1a-mysql`. El alcance detallado está en [FASE-1-EMPRESA-ACCESO.md](FASE-1-EMPRESA-ACCESO.md); la operación y límites están en [MYSQL-1A1.md](MYSQL-1A1.md). CI incorpora MySQL 8.4 real: colisiones de nombres, actualización desde el commit instalado en la HP, reintento, conservación de datos/credenciales, permisos SQL, claves entre empresas, reconexión y restauración en una base separada. El resultado aprobado debe verificarse en el commit entregado.
+El usuario confirmó la instalación de 1A.1, commit `92b261bbd7cadc58037b26ecce3bbe3b3c921c8d`: lint, tipos, build y smoke aprobados; MySQL preparado, migración aplicada, 11 tablas presentes y JSON `{"status":"ok","service":"larams-api","database":"ok","schemaVersion":1}`. Respaldos reportados: `larams-20260914T203302223214Z-antes.sql.gz` y `larams-20260914T203335152803Z-despues.sql.gz` dentro de `shared/backups`. PM2 habilitado. Esta es evidencia aportada por el usuario, no acceso SSH desde desarrollo.
 
-Siguiente paso: instalar 1A.1 y comprobar MySQL desde la HP. Después, 1A.2 incorpora administrador inicial, sesiones y autorización; 1A.3 habilita la edición de empresa/sucursales. Fase 1B: configuración visual y consulta de auditoría. La base publicada actual se conserva como versión conocida para recuperación; antes de admitir información operativa se completarán los ensayos pendientes en la HP y el respaldo fuera del equipo.
+Siguiente paso: instalar 1A.2 y crear el administrador con contraseña elegida en la terminal. [Alcance y controles](ACCESO-1A2.md). CI incluye actualización desde 1A.1, conservación de datos y contraseña, alta por TTY, pruebas de acceso y recuperación de código compatible. El resultado aprobado se vincula al commit entregado. Después, 1A.3 habilita edición de empresa/sucursales y usuarios. Los ensayos pendientes en la HP, revisión móvil y respaldo externo siguen abiertos antes de operar con información real.
 
 ## Datos a concretar en su fase
 

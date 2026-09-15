@@ -1,10 +1,10 @@
 # Fase 1 — Empresa, MySQL y acceso
 
-Estado: 1A.1 implementada en esta rama; instalación en la HP pendiente. 1A.2, 1A.3 y 1B siguen planificadas. La evidencia de CI corresponde al commit de cada entrega.
+Estado: 1A.1 instalada y confirmada por el usuario. 1A.2 implementada en esta rama; pendiente de instalar y aceptar en la HP. 1A.3 y 1B siguen planificadas. La evidencia de CI corresponde al commit de cada entrega.
 
 ## Punto de partida confirmado
 
-La fase 0 está instalada en `/home/alvaro/apps/larams-erp`, con web/API saludables y acceso normal en `https://larams.aliproinv.com`. Cloudflare está activo y el servicio de arranque PM2 habilitado. MySQL 8.4 está disponible en la HP, pero el ERP aún no tiene conexión, migraciones ni usuarios operativos. La versión instalada es `efb08c975805d20dac38b6a69ce5dc25e9dadfd5`.
+La HP tiene instalada 1A.1, commit `92b261bbd7cadc58037b26ecce3bbe3b3c921c8d`, en `/home/alvaro/apps/larams-erp`. El usuario confirmó el 14 de septiembre: migraciones aplicadas, 11 tablas presentes, web/API saludables y `database: ok, schemaVersion: 1`. Existen respaldos previos y posteriores. Cloudflare ya funciona y PM2 tiene arranque habilitado.
 
 ## Entregas controladas
 
@@ -17,7 +17,7 @@ La fase 0 está instalada en `/home/alvaro/apps/larams-erp`, con web/API saludab
 
 Cada entrega se valida por separado. Configurar SUNAT se mantiene en la fase correspondiente: guardar datos de empresa no equivale a emitir comprobantes.
 
-1A.1 incorpora el esquema de 11 tablas, cliente MySQL, cuentas de conexión propias, migración, respaldo y readiness. Las tablas de acceso preparan las siguientes entregas: no conceden permisos a personas ni habilitan sesiones todavía. Ver [operación MySQL](MYSQL-1A1.md).
+1A.1 incorpora persistencia y respaldo. 1A.2 añade sesiones, autorización, login y alta inicial por terminal, con dos tablas auxiliares (13 de aplicación en total). Ver [operación MySQL](MYSQL-1A1.md) y [acceso 1A.2](ACCESO-1A2.md).
 
 ## Reglas de implementación
 

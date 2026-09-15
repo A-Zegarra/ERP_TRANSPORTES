@@ -19,7 +19,8 @@
     "db:generate": "prisma generate",
     "db:deploy": "prisma migrate deploy",
     "db:status": "prisma migrate status",
-    "test:db": "node --test tests/database.test.mjs"
+    "test:db": "node --test tests/database.test.mjs",
+    "test:auth": "node --test tests/auth.test.mjs"
   },
   "devDependencies": {
     "prisma": "7.10.0",
