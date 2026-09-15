@@ -43,12 +43,14 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .selection-chip { background: #e1f0e7; color: #165944; border: 1px solid #bad7c9; border-radius: 20px; padding: 8px 12px; font-size: 12px; }
 .password-card { max-width: 620px; margin-top: 28px; }
 @media (max-width: 650px) {
+  .settings-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; overflow: visible; }
+  .settings-tab svg { display: none; }
   .settings-panel { padding: 18px; }
   .panel-heading { flex-direction: column; }
   .form-grid, .branch-options { grid-template-columns: minmax(0, 1fr); }
   .record-editor { padding: 17px; }
   .pager { align-items: flex-start; flex-direction: column; }
-  .settings-tab { padding: 12px 14px; }
+  .settings-tab { padding: 12px 6px; justify-content: center; font-size: 12px; }
 }
 
 @theme {

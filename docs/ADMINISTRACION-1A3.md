@@ -47,6 +47,8 @@ CI instala 1A.2 en MySQL 8.4 desechable, crea su administrador por TTY y actuali
 
 Las cuentas y datos ficticios de pruebas se crean solo en CI. La revisión local de interfaz con datos simulados no acredita persistencia MySQL.
 
+La revisión local del frontend compilado en Chromium verificó empresa, conservación de lo escrito ante un conflicto, recarga/guardado, alta de sucursal, alta de usuario y vista de Consulta. Se revisaron capturas de 1280 y 390 píxeles, sin errores JavaScript ni desborde global, con las tres pestañas visibles en móvil. El backend de esta revisión visual fue simulado; la persistencia se comprueba aparte con MySQL real en CI.
+
 Aceptación en la HP:
 
 1. Instalar y comprobar `database: ok, schemaVersion: 3`.
