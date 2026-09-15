@@ -14,7 +14,10 @@ export class DatabaseService implements OnModuleDestroy {
   async ready(): Promise<boolean> {
     try {
       // Comprobar una tabla migrada, no únicamente la existencia de un socket.
-      await this.client.company.findFirst({ select: { id: true } });
+      await this.client.company.findFirst({ select: { id: true, version: true } });
+      await this.client.branch.findFirst({ select: { version: true } });
+      await this.client.membership.findFirst({ select: { version: true } });
+      await this.client.user.findFirst({ select: { mustChangePassword: true } });
       await this.client.bootstrap.findUnique({ where: { id: 1 }, select: { id: true } });
       await this.client.authThrottle.findFirst({ select: { key: true } });
       return true;

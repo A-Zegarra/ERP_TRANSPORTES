@@ -1,5 +1,9 @@
 # Flujo de trabajo: GitHub → Termux → HP
 
+## Actualización 1A.3
+
+El usuario confirmó 1A.2 (commit `76ffd7f152a085ba3bd82cc3a0bb077da878c504`), el registro del administrador y el inicio de sesión. La siguiente actualización conserva esa cuenta: instalar el commit entregado con `--local-only`, comprobar `schemaVersion: 3` y abrir `/configuracion`. No repetir el alta inicial. [Operación y aceptación 1A.3](ADMINISTRACION-1A3.md).
+
 ## Diagnóstico confirmado el 14 de septiembre de 2026
 
 Equipo del usuario: `alvaro@ali-home-server`, Ubuntu 26.04 LTS x86_64; Node 24.19.0, pnpm 11.1.1, PM2 instalado, MySQL 8.4.11 y cloudflared 2026.8.2. Túnel activo. Memoria total 7371 MiB, disponible 5740 MiB; disco libre 76 GiB. Las direcciones 3100/3101 y la carpeta propuesta estaban disponibles al ejecutar el diagnóstico; el instalador vuelve a comprobarlas.
@@ -15,7 +19,7 @@ Equipo del usuario: `alvaro@ali-home-server`, Ubuntu 26.04 LTS x86_64; Node 24.1
 | Acceso confirmado | `https://larams.aliproinv.com` mediante el túnel existente |
 | MySQL | disponible; la entrega 1A.1 prepara base y cuentas propias al instalarla |
 
-Actualización confirmada: el usuario instaló 1A.1 (`92b261bbd7cadc58037b26ecce3bbe3b3c921c8d`) el 14 de septiembre, con migraciones, 11 tablas y `schemaVersion: 1` correctos. Para 1A.2 se instala el nuevo commit validado con el mismo modo `--local-only` y después se ejecuta `scripts/hp-administrador.py`. El bloque completo de entrega incluye ambos pasos; solicita la contraseña del nuevo administrador directamente en la terminal. Ver [acceso 1A.2](ACCESO-1A2.md).
+Antecedentes: 1A.1 (`92b261bbd7cadc58037b26ecce3bbe3b3c921c8d`) se confirmó el 14 de septiembre con 11 tablas. El 15 de septiembre se confirmó 1A.2 (`76ffd7f152a085ba3bd82cc3a0bb077da878c504`), con 13 tablas, y después el registro del administrador e inicio de sesión. La entrega actual 1A.3 conserva esa cuenta y utiliza únicamente la actualización con `--local-only`.
 
 No existe acceso remoto a la HP desde este entorno de desarrollo. El usuario confirmó la instalación local del commit `efb08c975805d20dac38b6a69ce5dc25e9dadfd5` el 14 de septiembre de 2026: web/API saludables y entrada Cloudflare aplicada. El diagnóstico de las 15:17:30 UTC confirmó HTTPS, DNS públicos, túnel activo y arranque PM2 habilitado. El usuario confirmó apertura normal en navegador. El diagnóstico de red no actualizó esa release; posteriormente el usuario instaló 1A.1 según la confirmación indicada arriba.
 

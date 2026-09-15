@@ -41,6 +41,9 @@ export async function createInitialAdmin(db: PrismaClient, input: InitialAdmin) 
         await tx.rolePermission.create({ data: { companyId: company.id, roleId: role.id, permissionCode: code } });
       }
       await tx.userRole.create({ data: { companyId: company.id, membershipId: member.id, roleId: role.id } });
+      const reader = await tx.role.create({ data: { companyId: company.id, code: "consulta", name: "Consulta" } });
+      await tx.rolePermission.createMany({ data: ["company.read", "branches.read"].map(permissionCode =>
+        ({ companyId: company.id, roleId: reader.id, permissionCode })) });
       await tx.branchAccess.create({ data: { companyId: company.id, membershipId: member.id, branchId: branch.id } });
       await tx.auditEvent.create({ data: { companyId: company.id, actorMembershipId: member.id,
         action: "system.bootstrap", entityType: "user", entityId: user.id } });

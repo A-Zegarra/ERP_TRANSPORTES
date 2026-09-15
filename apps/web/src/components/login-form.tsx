@@ -38,7 +38,7 @@ export function LoginForm() {
     <label htmlFor="password">Contraseña</label>
     <div className="password-field">
       <input id="password" name="password" type={visible ? "text" : "password"} autoComplete="current-password"
-        required maxLength={128} disabled={busy} />
+        required maxLength={256} disabled={busy} />
       <button type="button" className="password-toggle" onClick={() => setVisible(!visible)}
         aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={visible}>
         {visible ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}

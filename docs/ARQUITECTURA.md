@@ -4,11 +4,11 @@
 
 Monorepositorio pnpm con frontend Next.js y backend NestJS en Node.js. Un único backend organizado por dominios; trabajadores y adaptadores se despliegan aparte cuando su fase lo requiere. MySQL conserva las operaciones relacionales.
 
-| Componente | Responsabilidad | Situación en 1A.2 |
+| Componente | Responsabilidad | Situación en 1A.3 |
 |---|---|---|
-| `apps/web` | Pantallas Next.js/React, navegación, Tailwind | Implementado como base navegable |
-| `apps/api` | API REST, reglas de negocio, permisos, acceso a MySQL | Salud, MySQL, sesiones y autorización; módulos operativos pendientes |
-| `prisma` | Esquema y migraciones MySQL | Cliente, adaptador MySQL y dos migraciones, 13 tablas de aplicación |
+| `apps/web` | Pantallas Next.js/React, navegación, Tailwind | Acceso y administración de empresa/sucursales/usuarios |
+| `apps/api` | API REST, reglas de negocio, permisos, acceso a MySQL | Sesiones, autorización, administración transaccional y paginación |
+| `prisma` | Esquema y migraciones MySQL | Cliente/adaptador y tres migraciones, 13 tablas de aplicación |
 | Trabajador Node/BullMQ | Importar, exportar, emitir, reintentar | Introducir con el primer proceso duradero |
 | Redis | Cola y caché selectiva | No se instala en la fase 0 |
 | Almacenamiento de archivos | Adjuntos, evidencias, PDFs, XML/CDR | Pendiente; rutas fuera de los directorios de release |

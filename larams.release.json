@@ -1,6 +1,6 @@
 {
-  "milestone": "1A.2",
+  "milestone": "1A.3",
   "requiresDatabase": true,
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "dataRollback": false
 }

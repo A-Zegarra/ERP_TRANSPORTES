@@ -24,13 +24,31 @@ function ownCookie(header: string | null) {
 const json = (message: string, status: number) => NextResponse.json({ message }, { status, headers: { "Cache-Control": "no-store" } });
 
 export async function forwardAuth(request: NextRequest, action: string) {
-  const methods: Record<string, string> = { login: "POST", logout: "POST", me: "GET" };
+  const methods: Record<string, string> = { login: "POST", logout: "POST", me: "GET", password: "POST" };
   // Allowlist explícita; no publicar un proxy abierto hacia la API local.
   if (!Object.hasOwn(methods, action)) return json("Ruta no disponible.", 404);
   if (request.method !== methods[action]) return json("Método no permitido.", 405);
+  return forward(request, "auth/" + action, action !== "me");
+}
+
+export async function forwardOrganization(request: NextRequest, parts: string[]) {
+  const [resource, id] = parts;
+  const methods = resource === "company" && parts.length === 1 ? ["GET", "PATCH"]
+    : (resource === "branches" || resource === "users") && parts.length === 1 ? ["GET", "POST"]
+    : (resource === "branches" || resource === "users") && parts.length === 2
+      && /^[0-9a-f-]{36}$/i.test(id ?? "") ? ["PATCH"] : [];
+  if (!methods.length) return json("Ruta no disponible.", 404);
+  if (!methods.includes(request.method)) return json("Método no permitido.", 405);
+  const query = request.nextUrl.searchParams;
+  if ([...query.keys()].some(key => !["after", "q"].includes(key) || query.getAll(key).length !== 1)
+      || query.toString().length > 600) return json("Búsqueda inválida.", 400);
+  return forward(request, "organization/" + parts.join("/") + (query.size ? "?" + query.toString() : ""), false);
+}
+
+async function forward(request: NextRequest, path: string, setsCookie: boolean) {
   try {
     let body: string | undefined;
-    if (request.method === "POST") {
+    if (request.method !== "GET") {
       if (request.headers.get("origin") !== origin() || request.headers.get("x-larams-intent") !== "1"
           || request.headers.get("sec-fetch-site") === "cross-site"
           || request.headers.get("content-type")?.split(";")[0]?.trim() !== "application/json") {
@@ -51,12 +69,12 @@ export async function forwardAuth(request: NextRequest, action: string) {
     }
     const headers: Record<string, string> = { cookie: ownCookie(request.headers.get("cookie")) };
     if (body !== undefined) Object.assign(headers, { "Content-Type": "application/json", Origin: origin(), "X-Larams-Intent": "1" });
-    const response = await fetch(apiUrl("auth/" + action), {
+    const response = await fetch(apiUrl(path), {
       method: request.method, headers, body, cache: "no-store", redirect: "error", signal: AbortSignal.timeout(15000),
     });
     const outgoing = new Headers({ "Content-Type": "application/json", "Cache-Control": "no-store", Vary: "Cookie" });
     const cookie = response.headers.get("set-cookie");
-    if (cookie && (action === "login" || action === "logout")) outgoing.set("Set-Cookie", cookie);
+    if (cookie && setsCookie) outgoing.set("Set-Cookie", cookie);
     if (response.status === 429) outgoing.set("Retry-After", "900");
     return new NextResponse(await response.text(), { status: response.status, headers: outgoing });
   } catch {
@@ -65,7 +83,7 @@ export async function forwardAuth(request: NextRequest, action: string) {
 }
 
 export type SessionView = {
-  user: { id: string; email: string; displayName: string };
+  user: { id: string; email: string; displayName: string; mustChangePassword: boolean };
   company: { id: string; name: string }; permissions: string[];
   branches: { id: string; name: string }[]; session: { expiresAt: string };
 };

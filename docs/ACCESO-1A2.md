@@ -1,5 +1,7 @@
 # Acceso — entrega 1A.2
 
+Documento histórico de 1A.2, instalada y con registro/inicio de sesión confirmados por el usuario. La administración y el cambio de contraseña añadidos después se describen en [1A.3](ADMINISTRACION-1A3.md).
+
 Punto de partida: 1A.1 confirmada en la HP en el commit `92b261bbd7cadc58037b26ecce3bbe3b3c921c8d`. La nueva entrega requiere dos tablas aditivas: `auth_throttles` y `system_bootstrap`. Hay 13 tablas de aplicación y la tabla técnica de Prisma; readiness devuelve `schemaVersion: 2`. Las credenciales MySQL, base y datos previos se conservan.
 
 ## Funcionalidad

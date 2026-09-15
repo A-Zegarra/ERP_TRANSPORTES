@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentSession, type SessionView } from "@/lib/auth-server";
 import { LogoutButton } from "@/components/logout-button";
+import { PasswordForm } from "@/components/password-form";
 
 export const metadata = { title: "Mi cuenta" };
 export const dynamic = "force-dynamic";
@@ -21,9 +22,13 @@ export default async function AccountPage() {
       <dl className="account-details"><div><dt>Correo</dt><dd>{session.user.email}</dd></div>
         <div><dt>Empresa</dt><dd>{session.company.name}</dd></div>
         <div><dt>Sucursales asignadas</dt><dd>{session.branches.length ? session.branches.map(branch => branch.name).join(", ") : "Sin sucursales asignadas"}</dd></div>
-        <div><dt>Acceso habilitado</dt><dd>{session.permissions.includes("company.read") ? "Consultar datos de empresa" : "Cuenta personal"}</dd></div>
+        <div><dt>Acceso habilitado</dt><dd>{session.user.mustChangePassword ? "Cambio de contraseña pendiente"
+          : session.permissions.includes("users.write") ? "Administración de empresa y usuarios" : "Consulta según tus permisos"}</dd></div>
       </dl><LogoutButton />
     </section>
+    {!session.user.mustChangePassword && session.permissions.includes("company.read") &&
+      <p><Link className="primary-button" href="/configuracion">Abrir configuración →</Link></p>}
+    <PasswordForm required={session.user.mustChangePassword} />
     <p className="detail-note">Las funciones de operación se habilitarán conforme avance la implementación.</p>
     <Link className="back-link" href="/implementacion">Ver avance del proyecto →</Link>
   </div>;
