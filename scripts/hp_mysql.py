@@ -13,13 +13,14 @@ import shutil
 import stat
 import subprocess
 import tempfile
+import tarfile
 from urllib.parse import quote
 
 DATABASE = "larams_erp"
 ACCOUNTS = {"app": "larams_app", "migrate": "larams_migrate"}
 TABLES = {"companies", "branches", "users", "memberships", "roles", "permissions",
           "role_permissions", "user_roles", "branch_access", "sessions", "audit_events",
-          "auth_throttles", "system_bootstrap"}
+          "auth_throttles", "system_bootstrap", "company_branding"}
 
 
 class SafeError(Exception):
@@ -44,6 +45,56 @@ def atomic_private(path, content):
         os.replace(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
+
+
+def backup_logos(shared, sql_target):
+    """Objetos inmutables: copiar después del snapshot SQL incluye todos sus logos referenciados."""
+    source = shared / "logos"
+    target = sql_target.with_name(sql_target.name.removesuffix(".sql.gz") + ".logos.tar.gz")
+    def directory(path):
+        info = path.lstat()
+        if not stat.S_ISDIR(info.st_mode) or info.st_mode & 0o077 or info.st_uid != os.getuid():
+            raise SafeError("El directorio de logos debe ser privado y propio.")
+    try:
+        with target.open("xb") as output:
+            os.chmod(target, 0o600)
+            with tarfile.open(fileobj=output, mode="w:gz") as archive:
+                if source.exists() or source.is_symlink():
+                    directory(source)
+                    for company in sorted(source.iterdir()):
+                        if not re.fullmatch(r"[0-9a-fA-F-]{36}", company.name):
+                            raise SafeError("Directorio de logo no reconocido.")
+                        directory(company)
+                        for logo in sorted(company.iterdir()):
+                            if re.fullmatch(r"\.pending-[0-9a-f-]{36}", logo.name):
+                                private_file(logo)
+                                continue  # Nunca referenciado por SQL; una escritura puede estar en curso.
+                            if not re.fullmatch(r"[a-f0-9]{64}\.webp", logo.name):
+                                raise SafeError("Archivo de logo no reconocido.")
+                            private_file(logo)
+                            if logo.stat().st_size > 256 * 1024:
+                                raise SafeError("Logo fuera del límite de almacenamiento.")
+                            content = logo.read_bytes()
+                            if hashlib.sha256(content).hexdigest() != logo.stem:
+                                raise SafeError("No coincide la huella de un logo.")
+                            archive.add(logo, arcname="logos/" + company.name + "/" + logo.name, recursive=False)
+            output.flush()
+            os.fsync(output.fileno())
+        checksum = hashlib.sha256()
+        with target.open("rb") as saved:
+            for chunk in iter(lambda: saved.read(1024 * 1024), b""):
+                checksum.update(chunk)
+        digest = checksum.hexdigest()
+        atomic_private(Path(str(target) + ".sha256"), digest + "  " + target.name + "\n")
+        # Solo este manifiesto indica que SQL + logos terminaron correctamente.
+        atomic_private(sql_target.with_name(sql_target.name.removesuffix(".sql.gz") + ".backup.json"),
+                       json.dumps({"version": 1, "sql": sql_target.name, "logos": target.name,
+                                   "logosSha256": digest}, indent=2) + "\n")
+        return target
+    except BaseException:
+        target.unlink(missing_ok=True)
+        Path(str(target) + ".sha256").unlink(missing_ok=True)
+        raise
 
 
 def command(args, sql=None, cwd=None, env=None, output=None, timeout=45):
@@ -226,6 +277,7 @@ class DatabaseSetup:
                 for chunk in iter(lambda: saved.read(1024*1024), b""):
                     digest.update(chunk)
             atomic_private(Path(str(target) + ".sha256"), digest.hexdigest() + "  " + target.name + "\n")
+            backup_logos(self.shared, target)
         except BaseException:
             target.unlink(missing_ok=True)
             raise

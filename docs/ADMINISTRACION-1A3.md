@@ -4,7 +4,7 @@
 
 El usuario confirmó la instalación de 1A.2, commit `76ffd7f152a085ba3bd82cc3a0bb077da878c504`, y posteriormente el registro del administrador y el inicio de sesión en la HP. El primer intento de alta se detuvo por validación de contraseña antes de guardar. No se recibió confirmación del cierre de sesión ni del reinicio del equipo.
 
-1A.3 incorpora `/configuracion`: empresa, sucursales y usuarios. Queda pendiente instalar y aceptar esta entrega en la HP; CI no sustituye esa aceptación.
+1A.3 incorpora /configuracion: empresa, sucursales y usuarios. El usuario confirmó su instalación (c0c5a56dc2ae876918ab7758617c0de81568b5b6, schemaVersion: 3) y funcionamiento antes de autorizar 1B. La lista de ensayos de abajo conserva el alcance previsto; la confirmación general no acredita cada ensayo por separado.
 
 ## Funciones
 

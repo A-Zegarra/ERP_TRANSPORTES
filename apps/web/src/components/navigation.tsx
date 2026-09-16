@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Building2, ClipboardList, Home, MapPin, Package, Settings2, Truck, Users, Wallet, Wrench } from "lucide-react";
+import { ArrowUpRight, ClipboardList, Home, MapPin, Package, Settings2, Truck, Users, Wallet, Wrench } from "lucide-react";
+import { BrandMark } from "./branding";
 
 const items = [
   { href: "/", label: "Inicio", icon: Home },
@@ -20,10 +21,7 @@ const items = [
 export function Navigation() {
   const pathname = usePathname();
   return <>
-    <Link href="/" className="brand" aria-label="LARAM'S, inicio">
-      <span className="brand-icon"><Building2 size={23} aria-hidden="true" /></span>
-      <span><strong>LARAM’S</strong><small>CARGO INTERNACIONAL</small></span>
-    </Link>
+    <Link href="/" className="brand" aria-label="Inicio"><BrandMark /></Link>
     <nav aria-label="Navegación principal" className="navigation">
       {items.map(({ href, label, icon: Icon }) => <Link key={href} href={href}
         aria-current={pathname === href ? "page" : undefined}

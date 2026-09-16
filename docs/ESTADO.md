@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Fecha de referencia: 15 de septiembre de 2026.
+Fecha de referencia: 16 de septiembre de 2026.
 
 ## Decisiones confirmadas por el usuario
 
@@ -20,10 +20,11 @@ Fecha de referencia: 15 de septiembre de 2026.
 - Workspace independiente del código heredado: `apps/web` y `apps/api`.
 - Next.js, React, TypeScript y Tailwind; páginas navegables con alcances explícitos.
 - API NestJS con prefijo `/api/v1` y salud del proceso.
-- Cliente Prisma y adaptador MySQL, migraciones aditivas y 13 tablas para organización, acceso y control de intentos.
+- Cliente Prisma y adaptador MySQL, migraciones aditivas y 14 tablas de aplicación para organización, acceso, identidad visual y auditoría.
 - Base propia, cuentas MySQL limitadas, respaldos y readiness (1A.1 ya confirmada en la HP).
 - Login, Mi cuenta, cierre de sesión, sesiones con vencimiento/revocación, autorización en API y alta inicial por terminal (1A.2 instalada; registro e ingreso confirmados en la HP).
-- Empresa, sucursales, usuarios, perfiles Administrador/Consulta, cambio de contraseña, paginación y protección de edición concurrente (1A.3 implementada, pendiente de instalar en la HP).
+- Empresa, sucursales, usuarios, perfiles Administrador/Consulta, cambio de contraseña, paginación y protección de edición concurrente (1A.3 instalada y funcionamiento confirmado por el usuario).
+- Nombre visible, lema, colores, logo validado, espaciado de tablas y auditoría paginada con antes/después; respaldo SQL y archivos de logos (1B implementada, pendiente de aceptación en la HP).
 - Pipeline CI, prueba de humo de compilados y diagnóstico de la HP.
 - Instalador por commit, releases, procesos PM2 propios, comprobación de salud y recuperación automática de código ante un arranque fallido.
 - Publicación preparada para el túnel Cloudflare local existente, con copia previa, validación y detección de conflictos; alternativa indicada para túneles administrados desde el panel.
@@ -31,7 +32,7 @@ Fecha de referencia: 15 de septiembre de 2026.
 
 ## No implementado todavía
 
-Logos/colores y consulta de auditoría (1B), edición de identidad y perfiles personalizados, MFA, recuperación de contraseña por correo o por otro administrador, carga de archivos, datos operativos, cotizaciones, pagos, contabilidad, telemetría, integración SUNAT y migración del sistema heredado.
+Edición de identidad informática y perfiles personalizados, MFA, recuperación de contraseña por correo o por otro administrador, adjuntos operativos, datos maestros, cotizaciones, pagos, contabilidad, telemetría, integración SUNAT y migración del sistema heredado.
 
 ## Fase 0: despliegue y acceso confirmados
 
@@ -75,7 +76,9 @@ El usuario confirmó la instalación de 1A.1, commit `92b261bbd7cadc58037b26ecce
 
 El 15 de septiembre el usuario confirmó la instalación de 1A.2, commit `76ffd7f152a085ba3bd82cc3a0bb077da878c504`: validaciones/build aprobados, 13 tablas, servicios saludables y PM2 habilitado. Respaldos: `larams-20260915T044213117510Z-antes.sql.gz` y `larams-20260915T044228565147Z-despues.sql.gz`. El primer alta se detuvo por validación de contraseña; posteriormente confirmó registro del administrador e inicio de sesión. Esto acredita ingreso, no cierre de sesión ni reinicio del equipo.
 
-Siguiente paso: instalar y aceptar 1A.3, con edición de empresa/sucursales y administración de usuarios. [Alcance y controles](ADMINISTRACION-1A3.md). CI comprueba actualización desde 1A.2 con administrador existente, conservación de datos/hash, permisos, concurrencia, paginación, recuperación y restauración. Después sigue 1B: logos, colores y consulta de auditoría. Los ensayos pendientes en la HP, revisión móvil y respaldo externo siguen abiertos.
+El usuario instaló 1A.3, commit c0c5a56dc2ae876918ab7758617c0de81568b5b6, y compartió validaciones aprobadas, migraciones, 13 tablas y readiness con database: ok y schemaVersion: 3. Respaldos reportados: larams-20260915T231111816957Z-antes.sql.gz y larams-20260915T231126038368Z-despues.sql.gz. Posteriormente confirmó que todo funciona y autorizó continuar con 1B. Esta aceptación no acredita por sí sola todos los ensayos de recuperación, reinicio o volumen.
+
+Siguiente paso: instalar y aceptar [1B: identidad visual y auditoría](PERSONALIZACION-1B.md). CI ensaya actualización desde 1A.3 con administrador existente, conservación de datos/hash, permisos, concurrencia, paginación, recuperación y restauración de SQL y logos. Después sigue fase 2: datos maestros. Los ensayos pendientes en la HP y el respaldo externo siguen abiertos.
 
 ## Datos a concretar en su fase
 

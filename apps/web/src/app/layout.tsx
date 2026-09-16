@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
+import { BrandingProvider, BrandFooter } from "@/components/branding";
 import "./globals.css";
+import "./branding.css";
 
 export const metadata: Metadata = {
   title: { default: "LARAM’S | Gestión de transporte", template: "%s | LARAM’S" },
@@ -10,13 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="es"><body>
+  return <html lang="es"><body><BrandingProvider>
     <a href="#contenido" className="skip-link">Saltar al contenido</a>
     <aside className="sidebar"><Navigation /></aside>
     <div className="app-main">
       <header className="topbar"><span>Gestión de transporte</span><Link className="account-link" href="/mi-cuenta">Mi cuenta →</Link></header>
       <main id="contenido" tabIndex={-1}>{children}</main>
-      <footer className="footer">LARAM’S CARGO INTERNACIONAL <span>Perú · Chile · Rutas terrestres</span></footer>
+      <footer className="footer"><BrandFooter /></footer>
     </div>
-  </body></html>;
+  </BrandingProvider></body></html>;
 }

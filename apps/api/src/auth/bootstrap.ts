@@ -31,6 +31,7 @@ export async function createInitialAdmin(db: PrismaClient, input: InitialAdmin) 
         countryCode: "PE", currencyCode: "PEN", timeZone: "America/Lima" } });
       const branch = await tx.branch.create({ data: { companyId: company.id, code: "TACNA",
         name: "Tacna", countryCode: "PE", timeZone: "America/Lima" } });
+      await tx.branding.create({ data: { companyId: company.id, displayName: company.legalName } });
       const user = await tx.user.create({ data: { email, displayName: input.displayName.trim(), passwordHash, active: true } });
       // La clave única evita dos altas iniciales aun con comandos concurrentes.
       await tx.bootstrap.create({ data: { id: 1, companyId: company.id, userId: user.id } });

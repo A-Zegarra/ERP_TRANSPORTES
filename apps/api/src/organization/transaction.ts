@@ -28,9 +28,10 @@ export async function organizationWrite<T>(db: PrismaClient, auth: AuthContext, 
     throw error;
   }
 }
-export function audit(tx: Tx, auth: AuthContext, action: string, entityType: string, entityId: string) {
+export function audit(tx: Tx, auth: AuthContext, action: string, entityType: string, entityId: string,
+  before?: Prisma.InputJsonValue, after?: Prisma.InputJsonValue) {
   return tx.auditEvent.create({ data: { companyId: auth.companyId, actorMembershipId: auth.membershipId,
-    action, entityType, entityId } });
+    actorName: auth.displayName, action, entityType, entityId, beforeJson: before, afterJson: after } });
 }
 export function sameVersion(actual: number, expected: number) {
   if (actual !== expected) throw new ConflictException("Otra persona modificó este registro. Vuelve a cargarlo antes de guardar.");
