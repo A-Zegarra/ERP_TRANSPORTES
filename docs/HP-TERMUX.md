@@ -1,8 +1,8 @@
 # Flujo de trabajo: GitHub → Termux → HP
 
-## Actualización 1A.3
+## Actualización 1B
 
-El usuario confirmó 1A.2 (commit `76ffd7f152a085ba3bd82cc3a0bb077da878c504`), el registro del administrador y el inicio de sesión. La siguiente actualización conserva esa cuenta: instalar el commit entregado con `--local-only`, comprobar `schemaVersion: 3` y abrir `/configuracion`. No repetir el alta inicial. [Operación y aceptación 1A.3](ADMINISTRACION-1A3.md).
+El usuario confirmó 1A.3 (commit c0c5a56dc2ae876918ab7758617c0de81568b5b6) y su funcionamiento. Instalar el commit entregado con --local-only, comprobar schemaVersion: 4 y abrir Configuración → Identidad visual / Auditoría. No repetir el alta inicial. [Operación y aceptación 1B](PERSONALIZACION-1B.md).
 
 ## Diagnóstico confirmado el 14 de septiembre de 2026
 

@@ -12,6 +12,8 @@ export const permissions = {
   "branches.write": "Administrar sucursales",
   "users.read": "Consultar usuarios de la empresa",
   "users.write": "Administrar accesos de usuarios",
+  "branding.write": "Personalizar identidad visual",
+  "audit.read": "Consultar auditoría de la empresa",
 } as const;
 
 export type AuthContext = {

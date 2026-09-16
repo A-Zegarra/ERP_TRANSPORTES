@@ -25,10 +25,10 @@ export class OrganizationService {
   updateCompany(auth: AuthContext, input: unknown) {
     const { version: expected, ...data } = companyData(input);
     return organizationWrite(this.database.client, auth, "company.write", async tx => {
-      const before = await tx.company.findUniqueOrThrow({ where: { id: auth.companyId } });
+      const before = await tx.company.findUniqueOrThrow({ where: { id: auth.companyId }, select: companySelect });
       sameVersion(before.version, expected);
       const result = await tx.company.update({ where: { id: auth.companyId }, data: { ...data, version: { increment: 1 } }, select: companySelect });
-      await audit(tx, auth, "company.updated", "company", auth.companyId);
+      await audit(tx, auth, "company.updated", "company", auth.companyId, before, result);
       return result;
     });
   }
@@ -51,7 +51,7 @@ export class OrganizationService {
         // La asignación automática también invalida un editor de accesos abierto anteriormente.
         await tx.membership.update({ where: { id: auth.membershipId }, data: { version: { increment: 1 } } });
       }
-      await audit(tx, auth, "branch.created", "branch", result.id);
+      await audit(tx, auth, "branch.created", "branch", result.id, undefined, result);
       return result;
     });
   }
@@ -59,14 +59,14 @@ export class OrganizationService {
     id(branchId);
     const { version: expected, ...data } = branchData(input, true);
     return organizationWrite(this.database.client, auth, "branches.write", async tx => {
-      const before = await tx.branch.findFirst({ where: { id: branchId, companyId: auth.companyId } });
+      const before = await tx.branch.findFirst({ where: { id: branchId, companyId: auth.companyId }, select: branchSelect });
       if (!before) throw new NotFoundException("Sucursal no encontrada.");
       sameVersion(before.version, expected!);
       if (before.active && !data.active && !await tx.branch.findFirst({
         where: { companyId: auth.companyId, active: true, id: { not: branchId } }, select: { id: true },
       })) throw new ConflictException("Debe conservarse al menos una sucursal activa.");
       const result = await tx.branch.update({ where: { id: branchId }, data: { ...data, version: { increment: 1 } }, select: branchSelect });
-      await audit(tx, auth, data.active ? "branch.updated" : "branch.deactivated", "branch", branchId);
+      await audit(tx, auth, data.active ? "branch.updated" : "branch.deactivated", "branch", branchId, before, result);
       return result;
     });
   }
@@ -110,8 +110,9 @@ export class OrganizationService {
         const user = await tx.user.create({ data: { email, displayName, passwordHash, active: true, mustChangePassword: true } });
         const member = await tx.membership.create({ data: { companyId: auth.companyId, userId: user.id } });
         await this.assign(tx, auth, member.id, access.role, access.branchIds);
-        await audit(tx, auth, "user.created", "membership", member.id);
-        return tx.membership.findUniqueOrThrow({ where: { id: member.id }, select: memberSelect });
+        const result = await tx.membership.findUniqueOrThrow({ where: { id: member.id }, select: memberSelect });
+        await audit(tx, auth, "user.created", "membership", member.id, undefined, result);
+        return result;
       });
     } finally { this.hashing--; }
   }
@@ -139,7 +140,7 @@ export class OrganizationService {
         data: { active: enabled, version: { increment: 1 } }, select: memberSelect });
       // Incluso si se vuelve a activar, una sesión anterior no recupera su acceso.
       await tx.session.updateMany({ where: { companyId: auth.companyId, membershipId, revokedAt: null }, data: { revokedAt: new Date() } });
-      await audit(tx, auth, enabled ? "user.access_updated" : "user.deactivated", "membership", membershipId);
+      await audit(tx, auth, enabled ? "user.access_updated" : "user.deactivated", "membership", membershipId, before, result);
       return result;
     });
   }

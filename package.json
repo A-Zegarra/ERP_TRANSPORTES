@@ -21,7 +21,8 @@
     "db:status": "prisma migrate status",
     "test:db": "node --test tests/database.test.mjs",
     "test:auth": "node --test tests/auth.test.mjs",
-    "test:organization": "node --test tests/organization.test.mjs"
+    "test:organization": "node --test tests/organization.test.mjs",
+    "test:branding": "node --test tests/branding.test.mjs"
   },
   "devDependencies": {
     "prisma": "7.10.0",

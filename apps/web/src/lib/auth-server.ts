@@ -34,18 +34,37 @@ export async function forwardAuth(request: NextRequest, action: string) {
 export async function forwardOrganization(request: NextRequest, parts: string[]) {
   const [resource, id] = parts;
   const methods = resource === "company" && parts.length === 1 ? ["GET", "PATCH"]
+    : resource === "branding" && parts.length === 1 ? ["GET", "PATCH"]
+    : resource === "branding" && parts.length === 2 && ["logo", "remove-logo"].includes(id ?? "") ? ["POST"]
+    : resource === "audit" && (parts.length === 1 || (parts.length === 2 && /^[1-9]\d{0,18}$/.test(id ?? ""))) ? ["GET"]
     : (resource === "branches" || resource === "users") && parts.length === 1 ? ["GET", "POST"]
     : (resource === "branches" || resource === "users") && parts.length === 2
       && /^[0-9a-f-]{36}$/i.test(id ?? "") ? ["PATCH"] : [];
   if (!methods.length) return json("Ruta no disponible.", 404);
   if (!methods.includes(request.method)) return json("Método no permitido.", 405);
   const query = request.nextUrl.searchParams;
-  if ([...query.keys()].some(key => !["after", "q"].includes(key) || query.getAll(key).length !== 1)
+  const allowed = resource === "audit" ? ["after", "from", "to", "action"] : ["after", "q"];
+  if ([...query.keys()].some(key => !allowed.includes(key) || query.getAll(key).length !== 1)
       || query.toString().length > 600) return json("Búsqueda inválida.", 400);
-  return forward(request, "organization/" + parts.join("/") + (query.size ? "?" + query.toString() : ""), false);
+  return forward(request, "organization/" + parts.join("/") + (query.size ? "?" + query.toString() : ""), false,
+    resource === "branding" && id === "logo" ? 1400 * 1024 : 4096);
 }
 
-async function forward(request: NextRequest, path: string, setsCookie: boolean) {
+export async function forwardBranding(request: NextRequest, logo = false) {
+  if (request.method !== "GET") return json("Método no permitido.", 405);
+  if (!logo) return forward(request, "branding", false);
+  try {
+    const response = await fetch(apiUrl("branding/logo"), { cache: "no-store", redirect: "error", signal: AbortSignal.timeout(7000) });
+    if (!response.ok) return json("Logo no disponible.", response.status);
+    if (response.headers.get("content-type") !== "image/webp") return json("Logo no disponible.", 503);
+    const bytes = await response.arrayBuffer();
+    if (bytes.byteLength > 256 * 1024) return json("Logo no disponible.", 503);
+    return new NextResponse(bytes, { headers: { "Content-Type": "image/webp", "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff" } });
+  } catch { return json("Logo no disponible.", 503); }
+}
+
+async function forward(request: NextRequest, path: string, setsCookie: boolean, maxBody = 4096) {
   try {
     let body: string | undefined;
     if (request.method !== "GET") {
@@ -62,7 +81,7 @@ async function forward(request: NextRequest, path: string, setsCookie: boolean) 
         const item = await reader.read();
         if (item.done) break;
         length += item.value.byteLength;
-        if (length > 4096) { await reader.cancel(); return json("Solicitud demasiado grande.", 413); }
+        if (length > maxBody) { await reader.cancel(); return json("Solicitud demasiado grande.", 413); }
         chunks.push(item.value);
       }
       body = Buffer.concat(chunks).toString("utf8");

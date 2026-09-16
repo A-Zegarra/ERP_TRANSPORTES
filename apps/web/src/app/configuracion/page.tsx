@@ -16,8 +16,8 @@ export default async function SettingsPage() {
     return <div className="page-wrap"><h1>Acceso restringido</h1><p className="intro">Tu cuenta no tiene permiso para consultar la configuración.</p></div>;
   }
   return <div className="page-wrap"><div className="eyebrow">ADMINISTRACIÓN</div><h1>Tu empresa, <span>organizada.</span></h1>
-    <p className="intro">Configura los datos de la empresa, sus sucursales y los accesos de tu equipo.</p>
+    <p className="intro">Administra tu empresa, sus sucursales, los accesos y la identidad visual.</p>
     <Settings permissions={session.permissions} userId={session.user.id} />
-    <p className="detail-note">La personalización de logos y colores se incorporará en la siguiente entrega. La emisión SUNAT tiene su propia fase de implementación.</p>
+    <p className="detail-note">La emisión SUNAT tiene su propia fase de implementación.</p>
   </div>;
 }

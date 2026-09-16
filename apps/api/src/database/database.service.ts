@@ -20,6 +20,8 @@ export class DatabaseService implements OnModuleDestroy {
       await this.client.user.findFirst({ select: { mustChangePassword: true } });
       await this.client.bootstrap.findUnique({ where: { id: 1 }, select: { id: true } });
       await this.client.authThrottle.findFirst({ select: { key: true } });
+      await this.client.branding.findFirst({ select: { version: true, logoHash: true } });
+      await this.client.auditEvent.findFirst({ select: { actorName: true, beforeJson: true, afterJson: true } });
       return true;
     } catch {
       // No devolver URLs, SQL, nombres de usuario o errores del driver al cliente.

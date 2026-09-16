@@ -4,7 +4,7 @@ ERP para transporte terrestre desde Tacna, Perú, con operaciones internacionale
 
 ## Estado verificable
 
-**Fase 1A.2 instalada en la HP; administrador e inicio de sesión confirmados. Fase 1A.3 implementada en esta rama, pendiente de instalar y aceptar.**
+**Fase 1A.3 instalada y funcionamiento confirmado en la HP. Fase 1B implementada en esta rama; pendiente de instalar y aceptar.**
 
 - `apps/web`: Next.js App Router, Tailwind, acceso y configuración protegida de empresa, sucursales y usuarios.
 - `apps/api`: NestJS modular, sesiones MySQL, autorización por defecto, salud y readiness; escucha en loopback.
@@ -15,7 +15,7 @@ ERP para transporte terrestre desde Tacna, Perú, con operaciones internacionale
 - `scripts/hp-instalar.sh`: instalación por commit con releases y PM2 propios; paso Cloudflare con copia previa y validación del túnel efectivo. El usuario confirmó web/API saludables en la HP y la entrada del túnel aplicada. El diagnóstico posterior confirmó HTTPS y el usuario confirmó que la página abre normalmente.
 - `scripts/hp-verificar-red.py`: diagnóstico independiente de servicios locales, HTTPS y DNS públicos; no modifica la instalación.
 
-1A.3 permite editar empresa/sucursales, crear usuarios y administrar accesos. Incorpora perfiles Administrador/Consulta, paginación, protección de cambios simultáneos y cambio de contraseña para cuentas nuevas. Conserva la cuenta existente. Logos, colores y consulta de auditoría siguen en 1B; cotizaciones, GPS y SUNAT en fases posteriores.
+1A.3 permite editar empresa/sucursales, crear usuarios y administrar accesos. 1B añade nombre visible, lema, logo, colores, espaciado de tablas y consulta de auditoría con valores anteriores/posteriores para cambios nuevos. Conserva cuentas y datos existentes. Cotizaciones, GPS y SUNAT mantienen sus fases posteriores.
 
 Los directorios `client/`, `server/` y `tablas.sql` son la referencia heredada del commit `c4636ba` (12 de febrero de 2025). No pertenecen al workspace nuevo, no se instalan ni se despliegan mediante los comandos de esta versión. El servidor heredado contiene configuración insegura conocida: las credenciales utilizadas deben rotarse fuera de Git; no ejecutar ese servidor como parte de la nueva base.
 
@@ -28,6 +28,7 @@ Los directorios `client/`, `server/` y `tablas.sql` son la referencia heredada d
 - [Operación MySQL y respaldos de 1A.1](docs/MYSQL-1A1.md)
 - [Acceso y administrador inicial de 1A.2](docs/ACCESO-1A2.md)
 - [Empresa y administración de 1A.3](docs/ADMINISTRACION-1A3.md)
+- [Identidad visual y auditoría de 1B](docs/PERSONALIZACION-1B.md)
 - [Trabajo con HP y Termux](docs/HP-TERMUX.md)
 - [Publicación con Cloudflare Tunnel](docs/CLOUDFLARE.md)
 
