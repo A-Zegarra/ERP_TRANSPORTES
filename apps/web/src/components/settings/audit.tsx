@@ -94,6 +94,7 @@ export function AuditSettings() {
     {detail && <section className="audit-detail" aria-label="Detalle del registro"><div className="panel-heading">
       <h3>{actions[detail.action] ?? detail.action}</h3><button className="secondary-button" onClick={() => { setSelected(null); setDetail(null); }}>Cerrar detalle</button></div>
       <p>{detail.actorName} · {new Date(detail.createdAt).toLocaleString("es-PE")}</p>
+      {detail.action === "auth.login_failed" && <p className="form-help">La cuenta indica el destino del intento, no identifica a la persona que lo realizó.</p>}
       <p className="form-help">Registro {detail.id} · {detail.entityType} · {detail.entityId}</p>
       {fields.length ? <div className="table-scroll"><table className="settings-table audit-values"><thead><tr><th>Campo</th><th>Antes</th><th>Después</th></tr></thead>
         <tbody>{fields.map(key => <tr key={key}><th>{labels[key] ?? key}</th><td><pre>{format(detail.beforeJson?.[key])}</pre></td>

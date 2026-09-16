@@ -17,9 +17,10 @@ function eventId(value: unknown) {
 }
 const select = { id: true, action: true, entityType: true, entityId: true, actorName: true, createdAt: true,
   actor: { select: { user: { select: { displayName: true } } } } } as const;
-function view<T extends { id: bigint; actorName: string | null; actor: { user: { displayName: string } } | null }>(row: T) {
+function view<T extends { id: bigint; action: string; actorName: string | null; actor: { user: { displayName: string } } | null }>(row: T) {
   const { actor, ...data } = row;
-  return { ...data, id: row.id.toString(), actorName: row.actorName ?? actor?.user.displayName ?? "Sistema / sin actor" };
+  const name = row.actorName ?? actor?.user.displayName ?? "Sistema / sin actor";
+  return { ...data, id: row.id.toString(), actorName: row.action === "auth.login_failed" ? "Cuenta del intento: " + name : name };
 }
 @Injectable()
 export class AuditService {

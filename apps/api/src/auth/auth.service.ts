@@ -57,6 +57,7 @@ export class AuthService {
         if (membership) await db.auditEvent.create({ data: {
           companyId: membership.companyId, actorMembershipId: membership.id,
           action: "auth.login_failed", entityType: "user", entityId: user!.id,
+          actorName: user!.displayName,
         } });
         throw new UnauthorizedException("Correo o contraseña incorrectos.");
       }
@@ -77,6 +78,7 @@ export class AuthService {
         await tx.auditEvent.create({ data: {
           companyId: membership.companyId, actorMembershipId: membership.id,
           action: "auth.login", entityType: "session", entityId: session.id,
+          actorName: user.displayName,
         } });
       }, { isolationLevel: "ReadCommitted" });
       return token;
@@ -113,6 +115,7 @@ export class AuthService {
       await tx.auditEvent.create({ data: {
         companyId: auth.companyId, actorMembershipId: auth.membershipId,
         action: "auth.logout", entityType: "session", entityId: auth.sessionId,
+        actorName: auth.displayName,
       } });
     });
   }

@@ -43,4 +43,6 @@ La comprobación local cubre lint, tipos, esquema, compilación y humo. Las prue
 
 Siguiente fase: datos maestros (clientes, proveedores, conductores, vehículos y catálogos). Cotizaciones, viajes, llantas, GPS y SUNAT se incorporan después según el plan maestro.
 
+Revisión visual local realizada en Chromium a 1360 y 390 píxeles: guardado, conservación de cambios tras conflicto, carga/retiro de logo, recarga, filtros/detalle de auditoría y perfil Consulta. Las cinco pestañas caben en móvil y no se detectó desborde global ni errores JavaScript. Las tablas conservan desplazamiento horizontal propio. Se utilizaron datos simulados.
+
 Referencias técnicas: [límites de decodificación en Sharp](https://sharp.pixelplumbing.com/api-constructor/) y [validación de archivos de OWASP](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html).

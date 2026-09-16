@@ -47,7 +47,7 @@ export async function createInitialAdmin(db: PrismaClient, input: InitialAdmin) 
         ({ companyId: company.id, roleId: reader.id, permissionCode })) });
       await tx.branchAccess.create({ data: { companyId: company.id, membershipId: member.id, branchId: branch.id } });
       await tx.auditEvent.create({ data: { companyId: company.id, actorMembershipId: member.id,
-        action: "system.bootstrap", entityType: "user", entityId: user.id } });
+        actorName: user.displayName, action: "system.bootstrap", entityType: "user", entityId: user.id } });
       return { status: "created" };
     }, { timeout: 15000 });
   } catch (error) {
